@@ -6,28 +6,29 @@ import { supabase } from '../integrations/supabase/client';
 // ===================================
 
 /**
- * Proxy de imagens para evitar CORS, se ainda não tiver proxy.
+ * Proxy de imagens para evitar CORS, usando um serviço mais robusto.
  */
 const getProxyImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl || imageUrl.trim() === '') return '/perfil.jpg';
-    // Se for uma URL local, data URI ou já estiver com proxy, retorna como está.
-    if (imageUrl.startsWith('/') || imageUrl.startsWith('data:') || imageUrl.includes('workers.dev') || imageUrl.includes('weserv.nl')) {
+    // Se for uma URL local ou data URI, retorna como está.
+    if (imageUrl.startsWith('/') || imageUrl.startsWith('data:') || imageUrl.includes('weserv.nl')) {
         return imageUrl;
     }
-    return `https://proxt-insta.projetinho-solo.workers.dev/?url=${encodeURIComponent(imageUrl)}`;
+    // Usa o proxy images.weserv.nl para maior compatibilidade
+    return `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&q=80`;
 };
 
 /**
- * Proxy de imagens leve para avatares, se ainda não tiver proxy.
+ * Proxy de imagens leve para avatares, usando o mesmo serviço robusto.
  */
 const getProxyImageUrlLight = (imageUrl: string | undefined): string => {
     if (!imageUrl || imageUrl.trim() === '') return '/perfil.jpg';
-    // Se for uma URL local, data URI ou já estiver com proxy, retorna como está.
-    if (imageUrl.startsWith('/') || imageUrl.startsWith('data:') || imageUrl.includes('workers.dev') || imageUrl.includes('weserv.nl')) {
+    // Se for uma URL local ou data URI, retorna como está.
+    if (imageUrl.startsWith('/') || imageUrl.startsWith('data:') || imageUrl.includes('weserv.nl')) {
         return imageUrl;
     }
-    const urlWithoutProtocol = imageUrl.replace(/^https?:\/\//, '');
-    return `https://images.weserv.nl/?url=${encodeURIComponent(urlWithoutProtocol)}&w=80&h=80&fit=cover&q=50`;
+    // Usa o proxy images.weserv.nl com redimensionamento para avatares
+    return `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&w=80&h=80&fit=cover&q=50`;
 };
 
 /**
@@ -43,13 +44,11 @@ const simpleFetch = async (campo: string, username: string): Promise<any> => {
         throw new Error(`Erro ao contatar o servidor seguro: ${error.message}`);
     }
     
-    // The data returned from the function might have an error property from the proxy itself
     if (data.error) {
         console.error('Proxy function returned an error:', data.error);
         throw new Error(`Erro no servidor seguro: ${data.error}`);
     }
 
-    // The data from the external API might also have an error
     if (data.status === 'fail' || data.error) {
         throw new Error(data.message || data.error || 'A API externa retornou um erro.');
     }
@@ -74,7 +73,6 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
         
         const response = await simpleFetch('perfil_completo', cleanUsername);
 
-        // Acessa os dados aninhados
         const data = response?.results?.[0]?.data;
 
         if (data && data.username) {
@@ -108,13 +106,11 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
     try {
         console.log('🔎 Buscando dados de invasão via proxy seguro:', cleanUsername);
 
-        // 1. Fetch suggested profiles
         const suggestionsResponse = await simpleFetch('perfis_sugeridos', cleanUsername).catch(e => { 
             console.error("Falha ao buscar sugestões:", e); 
             return null; 
         });
 
-        // 2. Process suggestions
         let suggestions: SuggestedProfile[] = [];
         const suggestionsData = suggestionsResponse?.results?.[0]?.data;
         if (Array.isArray(suggestionsData)) {
@@ -126,17 +122,14 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
             }));
         }
 
-        // 3. Filter for public profiles
         const publicProfiles = suggestions.filter(p => p.is_private === false);
         console.log(`Encontrados ${publicProfiles.length} perfis públicos para buscar posts.`);
 
-        // 4. Fetch the most recent post for each public profile in parallel
         const postPromises = publicProfiles.map(async (profile) => {
             try {
                 const postsResponse = await simpleFetch('lista_posts', profile.username);
                 const postsData = postsResponse?.results?.[0]?.data;
                 
-                // Pega apenas o primeiro post (o mais recente) se houver algum
                 if (Array.isArray(postsData) && postsData.length > 0) {
                     const item = postsData[0]; 
 
@@ -146,7 +139,6 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
                         profile_pic_url: profile.profile_pic_url,
                     };
 
-                    // Mapeia os dados do post com base na nova estrutura da API
                     const post: Post = {
                         id: item.id || String(Math.random()),
                         image_url: getProxyImageUrl(item.image_url),
@@ -157,21 +149,18 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
                         comment_count: item.comment_count || 0,
                     };
                     
-                    // Retorna um único objeto FeedPost em um array para ser achatado depois
                     return [{ de_usuario: postUser, post }];
                 }
-                return []; // Nenhum post encontrado para este usuário
+                return [];
             } catch (error) {
                 console.error(`Falha ao buscar posts para ${profile.username}:`, error);
-                return []; // Retorna array vazio em caso de erro para este usuário
+                return [];
             }
         });
 
-        // 5. Aguarda todas as buscas e achata o resultado
         const postsByProfile = await Promise.all(postPromises);
         const allPosts = postsByProfile.flat();
 
-        // Embaralha os posts para misturar o feed
         const shuffledPosts = allPosts.sort(() => Math.random() - 0.5);
 
         console.log(`✅ Dados completos carregados. Sugestões: ${suggestions.length}, Posts: ${shuffledPosts.length}`);
