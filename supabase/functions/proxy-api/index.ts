@@ -5,7 +5,61 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const API_BASE_URL = 'https://spypanel.shop';
+// --- DADOS DE EXEMPLO (MOCK) ---
+// Esta função gera dados falsos para manter o app funcionando sem a API externa.
+const getMockData = (campo: string, username: string) => {
+  const MOCK_PROFILE = {
+    username: username,
+    full_name: 'Neymar Jr (Exemplo)',
+    profile_pic_url: '/perfil.jpg',
+    biography: 'Este é um perfil de exemplo. A API original foi desativada e aguarda substituição.',
+    follower_count: 222000000,
+    following_count: 1750,
+    media_count: 5432,
+    is_verified: true,
+    is_private: false,
+  };
+
+  const MOCK_SUGGESTIONS = [
+    { username: 'leomessi', full_name: 'Lionel Messi', profile_pic_url: '/perfil.jpg', is_private: false },
+    { username: 'cristiano', full_name: 'Cristiano Ronaldo', profile_pic_url: '/perfil.jpg', is_private: false },
+    { username: 'gabigol', full_name: 'Gabi Gol', profile_pic_url: '/perfil.jpg', is_private: true },
+    { username: 'anitta', full_name: 'Anitta', profile_pic_url: '/perfil.jpg', is_private: false },
+  ];
+
+  const MOCK_POSTS = [
+      { 
+        id: '321', 
+        image_url: '/passo1.png',
+        video_url: null, 
+        is_video: false,
+        caption: 'Post de exemplo 1! #mock', 
+        like_count: 1500000, 
+        comment_count: 60000 
+    },
+    { 
+        id: '654', 
+        image_url: '/passo2.png',
+        video_url: null, 
+        is_video: false,
+        caption: 'Outro post de exemplo. #dadosfalsos', 
+        like_count: 2300000, 
+        comment_count: 85000 
+    }
+  ];
+
+  switch (campo) {
+    case 'perfil_completo':
+      return MOCK_PROFILE;
+    case 'perfis_sugeridos':
+      return MOCK_SUGGESTIONS;
+    case 'lista_posts':
+      return MOCK_POSTS;
+    default:
+      return { error: 'Campo inválido' };
+  }
+};
+
 
 serve(async (req) => {
   // Lida com a requisição pre-flight CORS
@@ -14,14 +68,6 @@ serve(async (req) => {
   }
 
   try {
-    // Pega a chave secreta dos segredos do Supabase
-    const API_SECRET_KEY = Deno.env.get('API_SECRET_KEY')
-    if (!API_SECRET_KEY) {
-      console.error("[proxy-api] Erro Crítico: A variável 'API_SECRET_KEY' não está configurada nos segredos do Supabase.");
-      throw new Error('A chave de API do servidor não está configurada.')
-    }
-
-    // Extrai os parâmetros do corpo da requisição
     const { campo, username } = await req.json()
     if (!campo || !username) {
       return new Response(
@@ -33,52 +79,26 @@ serve(async (req) => {
       )
     }
 
-    // Monta a URL do serviço externo
-    const targetUrl = `${API_BASE_URL}/api/field?campo=${encodeURIComponent(campo)}&username=${encodeURIComponent(username)}`
+    console.log(`[proxy-api] Recebida requisição MOCK para campo: ${campo}, username: ${username}`);
 
-    // Faz a chamada para o serviço externo, enviando a chave secreta nos cabeçalhos
-    const response = await fetch(targetUrl, {
-      headers: { 
-        'Accept': 'application/json',
-        // Adicionando ambos os cabeçalhos para garantir compatibilidade
-        'X-API-Secret': API_SECRET_KEY,
-        'X-Api-Key': API_SECRET_KEY 
-      }
-    })
+    // Gera dados de exemplo
+    const mockData = getMockData(campo, username);
 
-    // Lê o corpo da resposta como texto para depuração
-    const responseBodyText = await response.text();
-    let data;
+    // Encapsula os dados na estrutura que o frontend espera
+    const responsePayload = {
+      results: [{
+        data: mockData
+      }]
+    };
 
-    try {
-      // Tenta analisar o corpo da resposta como JSON
-      data = JSON.parse(responseBodyText);
-    } catch (e) {
-      // Se falhar, registra o erro e o corpo da resposta, e lança um erro claro
-      console.error("[proxy-api] Falha ao analisar JSON da API externa. Status:", response.status, "Corpo:", responseBodyText);
-      throw new Error("A API externa retornou uma resposta inválida (não-JSON).");
-    }
-
-    // Verifica se a resposta da API externa indica um erro
-    if (!response.ok || data.success === false) {
-        const errorMessage = data.error || data.message || `Erro da API externa: ${response.status}`;
-        console.error(`[proxy-api] Erro da API externa:`, { status: response.status, message: errorMessage, body: data });
-        // Retorna o erro específico para o frontend
-        return new Response(JSON.stringify({ error: errorMessage }), {
-          status: 400, // Usa 400 para indicar um erro de requisição do cliente (ex: usuário não encontrado)
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-    }
-
-    // Se tudo deu certo, retorna os dados para o frontend
-    return new Response(JSON.stringify(data), {
+    // Retorna os dados de exemplo
+    return new Response(JSON.stringify(responsePayload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error) {
-    // Captura qualquer outro erro no processo e o registra
-    console.error('[proxy-api] Erro inesperado na função de proxy:', error.message)
+    console.error('[proxy-api] Erro na função de proxy MOCK:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
