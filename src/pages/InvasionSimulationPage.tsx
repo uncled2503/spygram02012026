@@ -203,7 +203,7 @@ const InvasionSimulationPage: React.FC = () => {
               </span>
             </div>
             <div className="bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm uppercase px-4 py-2 rounded-lg w-full text-center transition-colors">
-              Desbloquear Acesso VIP
+              Desbloquear Acesso Completo
             </div>
           </motion.button>
 
