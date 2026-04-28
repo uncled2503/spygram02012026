@@ -16,6 +16,7 @@ import LockedFeatureModal from '../components/LockedFeatureModal';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_SUGGESTION_NAMES } from '../../constants';
 import { fetchFullInvasionData } from '../services/profileService';
+import { Clock } from 'lucide-react'; // Ícone adicionado para o timer
 
 type SimulationStage = 'loading' | 'login_attempt' | 'success_card' | 'feed_locked' | 'error';
 
@@ -33,6 +34,9 @@ const InvasionSimulationPage: React.FC = () => {
   const [locations, setLocations] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFeatureName, setModalFeatureName] = useState('');
+  
+  // Estado para o contador (180 segundos = 3 minutos)
+  const [timeLeft, setTimeLeft] = useState(180);
 
   useEffect(() => {
     const loadAllDataAndProceed = async () => {
@@ -119,6 +123,22 @@ const InvasionSimulationPage: React.FC = () => {
     }
   }, [location.state, navigate, stage, isLoggedIn]);
 
+  // Efeito do Timer: Inicia apenas quando o estágio for 'feed_locked'
+  useEffect(() => {
+    if (stage !== 'feed_locked') return;
+
+    if (timeLeft <= 0) {
+      navigate('/invasion-concluded');
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [stage, timeLeft, navigate]);
+
   const handleLoginSuccess = useCallback(() => {
     login();
     setStage('success_card');
@@ -135,6 +155,13 @@ const InvasionSimulationPage: React.FC = () => {
   }, []);
 
   const closeModal = () => setIsModalOpen(false);
+
+  // Função para formatar o tempo do contador (MM:SS)
+  const formatTime = (seconds: number) => {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   if (!profileData || stage === 'loading') {
     if (errorMessage) {
@@ -160,7 +187,20 @@ const InvasionSimulationPage: React.FC = () => {
       />
       
       {stage === 'feed_locked' ? (
-        <div className="w-full">
+        <div className="w-full relative">
+          
+          {/* TIMER FLUTUANTE DE VISUALIZAÇÃO GRÁTIS */}
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="fixed bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[100] bg-red-600/95 backdrop-blur-md border border-red-500 rounded-full px-5 py-2.5 shadow-[0_0_20px_rgba(220,38,38,0.5)] flex items-center gap-2 whitespace-nowrap pointer-events-none"
+          >
+            <Clock className="w-5 h-5 text-white animate-pulse" />
+            <span className="text-white font-bold text-xs sm:text-sm">
+              TEMPO GRÁTIS DE VISUALIZAÇÃO: <span className="text-yellow-300 ml-1">{formatTime(timeLeft)}</span>
+            </span>
+          </motion.div>
+
           <div className="block md:hidden">
             <InstagramFeedMockup 
               profileData={profileData} 
