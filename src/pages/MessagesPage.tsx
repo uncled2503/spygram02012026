@@ -5,9 +5,10 @@ import SmileyStarIcon from '../components/icons/SmileyStarIcon';
 import MetaAIIcon from '../components/icons/MetaAIIcon';
 import DirectStoryItem from '../components/DirectStoryItem';
 import MessageItem from '../components/MessageItem';
+import LockedFeatureModal from '../components/LockedFeatureModal'; // Importado o modal de bloqueio
 import './MessagesPage.css';
 import { ProfileData, SuggestedProfile } from '../../types';
-import { getCitiesByState } from '../services/geolocationService'; // Importa a função de cidades
+import { getCitiesByState } from '../services/geolocationService';
 
 // Interfaces para os dados da página
 export interface Story {
@@ -38,6 +39,10 @@ const MessagesPage: React.FC = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [stories, setStories] = useState<Story[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Estados para o modal de bloqueio
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalFeatureName, setModalFeatureName] = useState('');
 
   useEffect(() => {
     const storedData = sessionStorage.getItem('invasionData');
@@ -100,8 +105,10 @@ const MessagesPage: React.FC = () => {
     }
   }, [navigate]);
 
-  const handleLockedClick = () => {
-    navigate('/credits');
+  // Função atualizada para abrir o modal em vez de ir para os créditos
+  const handleLockedClick = (feature: string = 'acessar este conteúdo') => {
+    setModalFeatureName(feature);
+    setIsModalOpen(true);
   };
 
   const handleChatClick = (user: Message) => {
@@ -110,6 +117,13 @@ const MessagesPage: React.FC = () => {
 
   return (
     <div className="messages-page-container">
+      {/* Adicionando o Modal de Bloqueio */}
+      <LockedFeatureModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        featureName={modalFeatureName} 
+      />
+
       <header className="messages-header">
         <div className="header-left-content">
           <button onClick={() => navigate('/invasion-simulation')} className="p-1">
@@ -120,8 +134,8 @@ const MessagesPage: React.FC = () => {
           </div>
         </div>
         <div className="header-actions">
-          <SmileyStarIcon size={28} strokeWidth={1.5} onClick={handleLockedClick} />
-          <SquarePen size={24} strokeWidth={1.5} onClick={handleLockedClick} />
+          <SmileyStarIcon size={28} strokeWidth={1.5} onClick={() => handleLockedClick('ver os melhores amigos')} />
+          <SquarePen size={24} strokeWidth={1.5} onClick={() => handleLockedClick('escrever uma nova mensagem')} />
         </div>
       </header>
 
@@ -129,7 +143,13 @@ const MessagesPage: React.FC = () => {
         <div className="search-bar-container">
           <div className="search-input-wrapper">
             <MetaAIIcon size={20} className="search-icon" />
-            <input type="text" placeholder="Interaja com a Meta AI ou pesquise" className="search-input" readOnly onClick={handleLockedClick} />
+            <input 
+              type="text" 
+              placeholder="Interaja com a Meta AI ou pesquise" 
+              className="search-input" 
+              readOnly 
+              onClick={() => handleLockedClick('pesquisar nas mensagens')} 
+            />
           </div>
         </div>
 
@@ -152,7 +172,9 @@ const MessagesPage: React.FC = () => {
 
         <div className="messages-section-header">
           <h2>Mensagens</h2>
-          <span className="requests-link" onClick={handleLockedClick}>Pedidos (4)</span>
+          <span className="requests-link" onClick={() => handleLockedClick('ver as solicitações de mensagem')}>
+            Pedidos (4)
+          </span>
         </div>
 
         <div className="messages-list">
@@ -166,7 +188,9 @@ const MessagesPage: React.FC = () => {
               unread={msg.unread}
               locked={msg.locked}
               // Permite que os dois primeiros chats (index 0 e 1) sejam clicáveis se não estiverem bloqueados
-              onClick={(!msg.locked && (index === 0 || index === 1)) ? () => handleChatClick(msg) : handleLockedClick}
+              onClick={(!msg.locked && (index === 0 || index === 1)) 
+                ? () => handleChatClick(msg) 
+                : () => handleLockedClick(`ler a conversa secreta com ${msg.name}`)}
             />
           ))}
         </div>
