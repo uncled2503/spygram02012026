@@ -5,7 +5,7 @@ import SmileyStarIcon from '../components/icons/SmileyStarIcon';
 import MetaAIIcon from '../components/icons/MetaAIIcon';
 import DirectStoryItem from '../components/DirectStoryItem';
 import MessageItem from '../components/MessageItem';
-import LockedFeatureModal from '../components/LockedFeatureModal'; // Importado o modal de bloqueio
+import LockedFeatureModal from '../components/LockedFeatureModal';
 import './MessagesPage.css';
 import { ProfileData, SuggestedProfile } from '../../types';
 import { getCitiesByState } from '../services/geolocationService';
@@ -53,10 +53,8 @@ const MessagesPage: React.FC = () => {
       const suggestedProfiles: SuggestedProfile[] = data.suggestedProfiles || [];
       const userCity: string = data.userCity || 'São Paulo';
       
-      // Gera uma lista de cidades para usar nas mensagens bloqueadas
-      const allCities = getCitiesByState(userCity, 'São Paulo'); // Usando SP como fallback de estado
+      const allCities = getCitiesByState(userCity, 'São Paulo'); 
       
-      // 1. Cria Stories (usando os primeiros 4 perfis sugeridos)
       const suggestedStories: Story[] = suggestedProfiles.slice(0, 4).map((profile: SuggestedProfile, index: number) => ({
         id: profile.username,
         name: maskUsername(profile.username),
@@ -65,34 +63,18 @@ const MessagesPage: React.FC = () => {
       }));
       setStories(suggestedStories);
 
-      // 2. Cria Mensagens (usando até 10 perfis sugeridos)
       const suggestedMessages: Message[] = suggestedProfiles.slice(0, 10).map((profile: SuggestedProfile, index: number) => {
-        const isLocked = index >= 2; // Os dois primeiros chats são desbloqueados
-        
-        let messageContent: string;
-        let time: string;
-        let unread: boolean;
-
-        if (isLocked) {
-          // Mensagens bloqueadas simulam localização ou conteúdo genérico
-          const city = allCities[index % allCities.length];
-          messageContent = index % 2 === 0 ? `${city}` : '4 novas mensagens';
-          time = ['22 h', '3 d', '4 d', '1 sem'][index % 4];
-          unread = index % 3 === 0;
-        } else {
-          // Mensagens desbloqueadas (os dois primeiros)
-          messageContent = ['Oi delícia, adivinha o que vc esq...', 'Encaminhou um reel de jonas.milgrau'][index];
-          time = ['Agora', '33 min'][index];
-          unread = true;
-        }
+        const city = allCities[index % allCities.length];
+        const time = ['22 h', '3 d', '4 d', '1 sem'][index % 4];
+        const unread = index % 3 === 0;
 
         return {
           id: profile.username,
           name: maskUsername(profile.username),
-          message: messageContent,
+          message: index % 2 === 0 ? `${city}` : '4 novas mensagens',
           time: time,
           unread: unread,
-          locked: isLocked,
+          locked: true, // Todos os chats aparecem como bloqueados/borrados
           avatar: profile.profile_pic_url,
         };
       });
@@ -100,24 +82,17 @@ const MessagesPage: React.FC = () => {
       setMessages(suggestedMessages);
 
     } else {
-      console.warn("Nenhum dado de invasão encontrado. Usando dados de fallback.");
       navigate('/');
     }
   }, [navigate]);
 
-  // Função atualizada para abrir o modal em vez de ir para os créditos
   const handleLockedClick = (feature: string = 'acessar este conteúdo') => {
     setModalFeatureName(feature);
     setIsModalOpen(true);
   };
 
-  const handleChatClick = (user: Message) => {
-    navigate(`/chat/${user.id}`, { state: { user } });
-  };
-
   return (
     <div className="messages-page-container">
-      {/* Adicionando o Modal de Bloqueio */}
       <LockedFeatureModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
@@ -178,7 +153,7 @@ const MessagesPage: React.FC = () => {
         </div>
 
         <div className="messages-list">
-          {messages.map((msg, index) => (
+          {messages.map((msg) => (
             <MessageItem
               key={msg.id}
               avatarUrl={msg.avatar}
@@ -187,10 +162,7 @@ const MessagesPage: React.FC = () => {
               time={msg.time}
               unread={msg.unread}
               locked={msg.locked}
-              // Permite que os dois primeiros chats (index 0 e 1) sejam clicáveis se não estiverem bloqueados
-              onClick={(!msg.locked && (index === 0 || index === 1)) 
-                ? () => handleChatClick(msg) 
-                : () => handleLockedClick(`ler a conversa secreta com ${msg.name}`)}
+              onClick={() => handleLockedClick(`ler a conversa secreta com ${msg.name}`)}
             />
           ))}
         </div>
