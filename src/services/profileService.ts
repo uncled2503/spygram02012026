@@ -45,17 +45,19 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
         const cleanUsername = username.replace(/^@+/, '').trim();
         if (!cleanUsername) throw new Error('Username inválido');
 
-        console.log('🔍 Buscando perfil via RapidAPI (userInfo):', cleanUsername);
+        console.log('🔍 Buscando perfil via RapidAPI:', cleanUsername);
         
-        // Chama a nova Edge Function que configuramos com a RapidAPI
         const { data, error } = await supabase.functions.invoke('rapidapi-profile', {
             body: { username: cleanUsername },
         });
 
-        if (error) throw new Error(`Erro ao contatar a RapidAPI: ${error.message}`);
-        if (data?.error) throw new Error(`Erro da API: ${data.error}`);
+        if (error) {
+            console.error('❌ Erro na Edge Function:', error);
+            throw new Error(`Erro ao contatar a RapidAPI: ${error.message}`);
+        }
+        
+        console.log('📦 Resposta bruta da RapidAPI:', data);
 
-        // Acessa a nova estrutura do payload: { "result": [{ "user": { ... } }] }
         const resultItem = data?.result?.[0];
         const user = resultItem?.user;
 
@@ -63,7 +65,6 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
             const profile: ProfileData = {
                 username: user.username,
                 fullName: user.full_name || '',
-                // Prefere a imagem em HD, mas faz fallback para a normal
                 profilePicUrl: getProxyImageUrl(user.hd_profile_pic_url_info?.url || user.profile_pic_url),
                 biography: user.biography || '',
                 followers: user.follower_count || 0,
@@ -74,22 +75,24 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
             };
 
             // EXTRAÇÃO DOS PERFIS EM COMUM (FACEPILE)
-            // Esses perfis aparecerão no topo (Stories) e no carrossel
             let suggestions: SuggestedProfile[] = [];
             if (Array.isArray(user.profile_context_facepile_users)) {
+                console.log('👥 Perfis em comum encontrados:', user.profile_context_facepile_users.length);
                 suggestions = user.profile_context_facepile_users.map((p: any) => ({
                     username: p.username,
                     profile_pic_url: getProxyImageUrlLight(p.profile_pic_url),
                     fullName: p.full_name,
                     is_private: p.is_private
                 }));
+            } else {
+                console.warn('⚠️ Nenhum perfil em comum (facepile) retornado pela API.');
             }
 
             return { profile, suggestions, posts: [] };
         }
         throw new Error('Perfil não encontrado. Verifique o nome de usuário.');
     } catch (error) {
-        console.error('❌ Erro ao buscar perfil:', error);
+        console.error('❌ Erro fatal no fetchProfileData:', error);
         if (error instanceof Error) throw error;
         throw new Error('Ocorreu um erro desconhecido ao buscar dados do backend.');
     }
@@ -102,12 +105,7 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
     const cleanUsername = profileData.username.replace(/^@+/, '').trim();
     
     try {
-        console.log('🔎 Buscando dados adicionais de invasão...', cleanUsername);
-
-        const suggestionsResponse = await simpleFetch('perfis_sugeridos', cleanUsername).catch(e => { 
-            console.error("Falha ao buscar sugestões:", e); 
-            return null; 
-        });
+        const suggestionsResponse = await simpleFetch('perfis_sugeridos', cleanUsername).catch(e => null);
 
         let suggestions: SuggestedProfile[] = [];
         const suggestionsData = suggestionsResponse?.results?.[0]?.data;
@@ -160,7 +158,6 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
         return { suggestions, posts: allPosts };
 
     } catch (error) {
-        console.error('❌ Erro ao buscar dados completos:', error);
         return { suggestions: [], posts: [] };
     }
 }
