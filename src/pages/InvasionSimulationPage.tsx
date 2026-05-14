@@ -83,9 +83,15 @@ const InvasionSimulationPage: React.FC = () => {
         setLocations(fallbackCities);
       }
 
-      const { suggestions, posts: fetchedPosts } = await fetchFullInvasionData(targetProfileData);
+      // Se já temos sugestões da busca inicial (RapidAPI), usamos elas.
+      // Caso contrário, buscamos na API secundária ou usamos mock.
+      let fetchedSuggestions = dataFromNav.suggestions || [];
+      const { suggestions: extraSuggestions, posts: fetchedPosts } = await fetchFullInvasionData(targetProfileData);
 
-      let fetchedSuggestions = suggestions;
+      if (fetchedSuggestions.length === 0) {
+        fetchedSuggestions = extraSuggestions;
+      }
+
       if (fetchedSuggestions.length === 0) {
           const shuffledNames = [...MOCK_SUGGESTION_NAMES].sort(() => 0.5 - Math.random());
           fetchedSuggestions = shuffledNames.slice(0, 15).map((name) => ({

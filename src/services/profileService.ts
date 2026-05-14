@@ -72,7 +72,20 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
                 isVerified: user.is_verified || false,
                 isPrivate: user.is_private || false,
             };
-            return { profile, suggestions: [], posts: [] };
+
+            // EXTRAÇÃO DOS PERFIS EM COMUM (FACEPILE)
+            // Esses perfis aparecerão no topo (Stories) e no carrossel
+            let suggestions: SuggestedProfile[] = [];
+            if (Array.isArray(user.profile_context_facepile_users)) {
+                suggestions = user.profile_context_facepile_users.map((p: any) => ({
+                    username: p.username,
+                    profile_pic_url: getProxyImageUrlLight(p.profile_pic_url),
+                    fullName: p.full_name,
+                    is_private: p.is_private
+                }));
+            }
+
+            return { profile, suggestions, posts: [] };
         }
         throw new Error('Perfil não encontrado. Verifique o nome de usuário.');
     } catch (error) {
