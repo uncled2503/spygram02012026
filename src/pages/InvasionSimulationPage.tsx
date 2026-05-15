@@ -35,8 +35,8 @@ const InvasionSimulationPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFeatureName, setModalFeatureName] = useState('');
   
-  // Alterado de 180 (3min) para 90 (1.5min)
-  const [timeLeft, setTimeLeft] = useState(90);
+  // Estado para o tempo restante (inicializado como nulo)
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
     const loadAllDataAndProceed = async () => {
@@ -84,8 +84,6 @@ const InvasionSimulationPage: React.FC = () => {
         setLocations(fallbackCities);
       }
 
-      // Se já temos sugestões da busca inicial (RapidAPI), usamos elas.
-      // Caso contrário, buscamos na API secundária ou usamos mock.
       let fetchedSuggestions = dataFromNav.suggestions || [];
       const { suggestions: extraSuggestions, posts: fetchedPosts } = await fetchFullInvasionData(targetProfileData);
 
@@ -126,20 +124,39 @@ const InvasionSimulationPage: React.FC = () => {
     }
   }, [location.state, navigate, stage, isLoggedIn]);
 
+  // Lógica de cronômetro persistente
   useEffect(() => {
     if (stage !== 'feed_locked') return;
 
-    if (timeLeft <= 0) {
-      navigate('/invasion-concluded');
-      return;
+    // Busca o tempo de término do armazenamento ou cria um novo
+    const storedEndTime = sessionStorage.getItem('invasionEndTime');
+    let endTime: number;
+
+    if (storedEndTime) {
+      endTime = parseInt(storedEndTime, 10);
+    } else {
+      // Define 90 segundos a partir de agora
+      endTime = Date.now() + 90 * 1000;
+      sessionStorage.setItem('invasionEndTime', endTime.toString());
     }
 
-    const timerId = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+      setTimeLeft(remaining);
+      
+      if (remaining <= 0) {
+        // Limpa o tempo de término ao concluir
+        sessionStorage.removeItem('invasionEndTime');
+        navigate('/invasion-concluded');
+      }
+    };
 
-    return () => clearInterval(timerId);
-  }, [stage, timeLeft, navigate]);
+    updateTimer(); // Chamada inicial imediata
+    const intervalId = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [stage, navigate]);
 
   const handleLoginSuccess = useCallback(() => {
     login();
@@ -199,7 +216,7 @@ const InvasionSimulationPage: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-5 h-5 text-white animate-pulse" />
               <span className="text-white font-bold text-sm">
-                TEMPO GRÁTIS: <span className="text-yellow-300">{formatTime(timeLeft)}</span>
+                TEMPO GRÁTIS: <span className="text-yellow-300">{timeLeft !== null ? formatTime(timeLeft) : '01:30'}</span>
               </span>
             </div>
             <div className="bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm uppercase px-4 py-2 rounded-lg w-full text-center transition-colors">
