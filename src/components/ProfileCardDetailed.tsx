@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProfileData } from '../../types';
-import { Zap, BadgeCheck, Shield, Lock } from 'lucide-react';
+import { Zap, BadgeCheck, Shield } from 'lucide-react';
 
 interface ProfileCardDetailedProps {
   profileData: ProfileData;
@@ -16,66 +16,66 @@ const ProfileCardDetailed: React.FC<ProfileCardDetailedProps> = ({ profileData }
   const remainingBio = bioLines.slice(1).join('\n');
 
   return (
-    <div className="relative bg-[#0f0f0f] border border-white/5 rounded-[2rem] p-8 shadow-2xl overflow-hidden group">
+    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden group">
+      {/* Detalhe de Brilho no Topo */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
       
       <div className="flex flex-col items-center text-center">
-        {/* Avatar com Brilho Roxo */}
+        {/* Avatar com Anel de Gradiente */}
         <div className="relative mb-6">
-          <div className="absolute inset-0 bg-purple-600/30 rounded-full blur-xl animate-pulse-slow" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-purple-600 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity" />
           <img
             src={profileData.profilePicUrl}
             alt={profileData.username}
-            className="relative w-28 h-28 rounded-full object-cover border-4 border-[#1a1a1a]"
+            className="relative w-28 h-28 rounded-full object-cover border-4 border-black"
           />
         </div>
 
         {/* Nomes */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center justify-center gap-2 mb-1">
             <h2 className="text-2xl font-black text-white tracking-tight">@{profileData.username}</h2>
             {profileData.isVerified && <BadgeCheck className="w-6 h-6 text-blue-400 fill-blue-400/10" />}
           </div>
-          <p className="text-gray-400 font-bold text-sm">{profileData.fullName}</p>
+          <p className="text-gray-400 font-medium">{profileData.fullName}</p>
         </div>
 
-        {/* Stats Grid - Containers Escuros */}
-        <div className="grid grid-cols-3 w-full gap-3 mb-8">
-          <div className="bg-[#1a1a1a] rounded-2xl py-4 border border-white/5">
-            <p className="text-xl font-black text-white">{formatNumber(profileData.postsCount)}</p>
-            <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest mt-1">Posts</p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 w-full gap-4 mb-8">
+          <div className="bg-white/5 rounded-2xl py-3 border border-white/5">
+            <p className="text-lg font-black text-white">{formatNumber(profileData.postsCount)}</p>
+            <p className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Posts</p>
           </div>
-          <div className="bg-[#1a1a1a] rounded-2xl py-4 border border-white/5">
-            <p className="text-xl font-black text-white">{formatNumber(profileData.followers)}</p>
-            <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest mt-1">Seguidores</p>
+          <div className="bg-white/5 rounded-2xl py-3 border border-white/5">
+            <p className="text-lg font-black text-white">{formatNumber(profileData.followers)}</p>
+            <p className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Seguidores</p>
           </div>
-          <div className="bg-[#1a1a1a] rounded-2xl py-4 border border-white/5">
-            <p className="text-xl font-black text-white">{formatNumber(profileData.following)}</p>
-            <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest mt-1">Seguindo</p>
+          <div className="bg-white/5 rounded-2xl py-3 border border-white/5">
+            <p className="text-lg font-black text-white">{formatNumber(profileData.following)}</p>
+            <p className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Seguindo</p>
           </div>
         </div>
 
-        {/* Bio - Container Escuro com Raio Amarelo */}
+        {/* Bio */}
         {(bioLine1 || remainingBio) && (
-          <div className="w-full text-left bg-[#0a0a0a] rounded-2xl p-5 border border-white/5 mb-8">
-            <div className="flex items-start gap-3">
-              <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5 fill-yellow-400/20" />
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-200 font-bold leading-tight">@{bioLine1}</span>
-                {remainingBio && (
-                  <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">@{remainingBio}</p>
-                )}
+          <div className="w-full text-left bg-black/40 rounded-2xl p-4 border border-white/5">
+            {bioLine1 && (
+              <div className="flex items-start gap-2 mb-2">
+                <Zap className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-200 font-medium leading-tight">{bioLine1}</span>
               </div>
-            </div>
+            )}
+            {remainingBio && (
+              <p className="text-xs text-gray-400 whitespace-pre-wrap leading-relaxed">{remainingBio}</p>
+            )}
           </div>
         )}
 
-        {/* Status Privado - Estilo "Pílula" Vermelha */}
+        {/* Status Privado */}
         {profileData.isPrivate && (
-          <div className="w-full flex items-center justify-center gap-3 py-3 rounded-full bg-red-950/20 border border-red-900/50">
-            <Lock className="w-3.5 h-3.5 text-red-500" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-red-400">
-              Criptografia de Conta Privada Quebrada
-            </span>
+          <div className="mt-6 flex items-center gap-2 text-red-400 text-xs font-black uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20">
+            <Shield className="w-3.5 h-3.5" />
+            Criptografia de Conta Privada Quebrada
           </div>
         )}
       </div>
