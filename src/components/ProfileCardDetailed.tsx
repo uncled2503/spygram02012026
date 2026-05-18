@@ -16,8 +16,8 @@ const ProfileCardDetailed: React.FC<ProfileCardDetailedProps> = ({ profileData }
   const remainingBio = bioLines.slice(1).join('\n');
 
   return (
-    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden group">
-      {/* Detalhe de Brilho no Topo */}
+    <div className="relative p-8 group">
+      {/* Detalhe de Brilho no Topo (Mapeado para o novo container pai) */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
       
       <div className="flex flex-col items-center text-center">

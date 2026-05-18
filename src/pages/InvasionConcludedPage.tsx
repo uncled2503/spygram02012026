@@ -108,25 +108,20 @@ const InvasionConcludedPage: React.FC = () => {
           <p className="text-gray-400 text-sm font-medium">Todos os dados foram extraídos com sucesso.</p>
         </motion.div>
 
-        {/* Card Principal do Perfil */}
-        <section className="mb-12">
+        {/* Bloco Conexo: Card de Perfil + Círculo Íntimo */}
+        <section className="mb-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden group">
           <ProfileCardDetailed profileData={profileData} />
-        </section>
-
-        {/* Seção: Interações */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 mb-8"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <Award className="w-6 h-6 text-purple-400" />
-            <h2 className="text-xl font-black text-white uppercase tracking-tight">Círculo Íntimo</h2>
+          
+          <div className="px-8 pb-8">
+            <div className="w-full h-px bg-white/10 mb-8" />
+            <div className="flex items-center gap-3 mb-4">
+              <Award className="w-6 h-6 text-purple-400" />
+              <h2 className="text-xl font-black text-white uppercase tracking-tight">Círculo Íntimo</h2>
+            </div>
+            <p className="text-sm text-gray-400 mb-6 text-left">Identificamos os perfis que mais trocam mensagens e curtidas com o alvo.</p>
+            <InteractionProfilesCarousel profiles={suggestedProfiles} />
           </div>
-          <p className="text-sm text-gray-400 mb-6 text-left">Identificamos os perfis que mais trocam mensagens e curtidas com o alvo.</p>
-          <InteractionProfilesCarousel profiles={suggestedProfiles} />
-        </motion.section>
+        </section>
 
         <SectionDivider />
 
