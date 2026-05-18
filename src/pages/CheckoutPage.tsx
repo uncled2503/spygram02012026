@@ -7,6 +7,33 @@ import toast from 'react-hot-toast';
 
 const CHECKOUT_URL = 'https://go.perfectpay.com.br/PPU38CPUD1S';
 
+// Funções de Máscara
+const maskCPFOrCNPJ = (value: string) => {
+  const v = value.replace(/\D/g, '');
+  if (v.length <= 11) {
+    return v
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+      .replace(/(-\d{2})\d+?$/, '$1');
+  } else {
+    return v
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})/, '$1-$2')
+      .replace(/(-\d{2})\d+?$/, '$1');
+  }
+};
+
+const maskPhone = (value: string) => {
+  const v = value.replace(/\D/g, '');
+  return v
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{4})\d+?$/, '$1');
+};
+
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(252);
@@ -84,7 +111,6 @@ const CheckoutPage: React.FC = () => {
   };
 
   const handleFinalize = async () => {
-    // Validação básica de campos obrigatórios
     if (!formData.nome || !formData.email || !formData.documento) {
         toast.error("Por favor, preencha seus dados de faturamento.");
         return;
@@ -117,10 +143,8 @@ const CheckoutPage: React.FC = () => {
 
         if (error) throw error;
 
-        // Armazena que o usuário iniciou o processo de compra
         sessionStorage.setItem('hasPurchased', 'true');
 
-        // Redireciona para a URL de pagamento da Royal Banking (checkout ou pix direto)
         if (data.checkout_url) {
             window.location.href = data.checkout_url;
         } else if (data.pix_url) {
@@ -128,7 +152,6 @@ const CheckoutPage: React.FC = () => {
         } else if (data.url) {
             window.location.href = data.url;
         } else {
-            // Fallback para a URL estática caso a API não retorne uma URL específica
             window.location.href = CHECKOUT_URL;
         }
 
@@ -137,7 +160,6 @@ const CheckoutPage: React.FC = () => {
         console.error("Erro na integração:", err);
         toast.error("Sistema de pagamentos instável. Redirecionando para servidor secundário...", { id: toastId });
         
-        // Fallback em caso de erro na Edge Function ou API
         setTimeout(() => {
             window.location.href = CHECKOUT_URL;
         }, 2000);
@@ -148,10 +170,17 @@ const CheckoutPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    let maskedValue = value;
+    if (name === 'documento') {
+      maskedValue = maskCPFOrCNPJ(value);
+    } else if (name === 'whatsapp') {
+      maskedValue = maskPhone(value);
+    }
+
+    setFormData(prev => ({ ...prev, [name]: maskedValue }));
   };
 
-  // Componente de Ordem Bump Reaproveitável para Desktop
   const DesktopOrderBump = ({ id, details, checked }: { id: keyof typeof bumps, details: any, checked: boolean }) => (
     <div 
       onClick={() => handleToggleBump(id)}
@@ -183,9 +212,8 @@ const CheckoutPage: React.FC = () => {
 
       {/* --- VERSÃO WEB (DESKTOP) --- */}
       <div className="hidden md:block">
-        {/* HERO WEB - AGORA COM TAMANHO REDUZIDO */}
+        {/* HERO WEB */}
         <div className="bg-white border-b border-gray-100 relative overflow-hidden">
-          {/* Background Blur mantido sutilmente ao redor */}
           <div className="absolute inset-0 z-0 opacity-10 grayscale blur-[100px] scale-150 pointer-events-none" 
                style={{ backgroundImage: 'url(/banner-topo.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
           
@@ -208,10 +236,8 @@ const CheckoutPage: React.FC = () => {
         {/* MAIN GRID WEB */}
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-12 gap-8 items-start pb-20">
             
-            {/* COLUNA ESQUERDA (FORM E CONTEUDO) */}
             <div className="col-span-8 space-y-8">
                 
-                {/* Promo Banner Desktop - Redimensionado */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl relative">
                     <img src="/embaixodobanner.png" className="w-full h-auto block" alt="SpyGram PRO" />
                 </div>
@@ -248,7 +274,6 @@ const CheckoutPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Step 2: Payment Desktop (SOMENTE PIX) */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-8">
                         <div className="flex items-center gap-4 mb-8">
@@ -256,7 +281,6 @@ const CheckoutPage: React.FC = () => {
                             <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">PAGAMENTO</h2>
                         </div>
                         
-                        {/* Tabs Mockup - Somente Pix */}
                         <div className="grid grid-cols-1 gap-2 mb-6 max-w-[150px]">
                             <div className="border-2 border-green-500 rounded-lg py-3 flex flex-col items-center gap-1 bg-white relative">
                                 <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5"><Check size={10} /></div>
@@ -272,7 +296,6 @@ const CheckoutPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Step 3: Bumps Desktop */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-8">
                         <div className="flex items-center gap-4 mb-8">
@@ -308,7 +331,6 @@ const CheckoutPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* COLUNA DIREITA (RESUMO SIDEBAR) */}
             <div className="col-span-4 sticky top-16">
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                     <div className="bg-[#bdbdbd]/20 py-3 text-center">
@@ -340,7 +362,6 @@ const CheckoutPage: React.FC = () => {
             </div>
         </div>
 
-        {/* FOOTER WEB */}
         <footer className="bg-white border-t border-gray-100 py-12">
             <div className="max-w-6xl mx-auto px-4">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
@@ -355,10 +376,9 @@ const CheckoutPage: React.FC = () => {
 
       {/* --- VERSÃO MOBILE --- */}
       <div className="md:hidden">
-        {/* Hero Section Mobile */}
         <div className="w-full bg-white pb-8 relative overflow-hidden">
           <div className="absolute inset-0 z-0 opacity-30 grayscale blur-3xl scale-110 pointer-events-none" style={{ backgroundImage: 'url(/banner-topo.png)', backgroundSize: 'cover', backgroundPosition: 'center top' }} />
-          <div className="w-full max-w-lg mx-auto flex flex-col items-center relative z-10">
+          <div className="w-full max-lg mx-auto flex flex-col items-center relative z-10">
               <div className="w-full relative px-4 pt-4">
                   <img src="/banner-topo.png" alt="SpyGram Community" className="w-full h-auto relative z-10" />
               </div>
@@ -376,7 +396,6 @@ const CheckoutPage: React.FC = () => {
         </div>
 
         <div className="max-w-md mx-auto px-4 mt-8 space-y-12">
-          {/* Step 1 Mobile */}
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-6">
               <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
@@ -392,7 +411,6 @@ const CheckoutPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Step 2 Mobile (SOMENTE PIX EM TEXTO) */}
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-6">
               <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
@@ -404,7 +422,6 @@ const CheckoutPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Step 3 Mobile */}
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-8">
               <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
@@ -437,7 +454,6 @@ const CheckoutPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Resumo Mobile */}
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-6 flex flex-col items-center">
                 <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit mb-8 uppercase text-xs font-black">RESUMO DA COMPRA</div>
