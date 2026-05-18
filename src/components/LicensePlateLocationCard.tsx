@@ -42,11 +42,11 @@ const LicensePlateLocationCard: React.FC<LicensePlateLocationCardProps> = ({ onU
           **NOVIDADE!** Descubra a localização exata do veículo do seu alvo, apenas com a placa. Rastreamento em tempo real via satélite.
         </p>
         
-        {/* Imagem Limpa */}
+        {/* Imagem Atualizada */}
         <div className="relative w-full max-w-md mx-auto mb-8">
           <img 
-            src="/autosat-monitoramento-rastreamento.png" 
-            alt="Rastreamento Veicular" 
+            src="/tracking-satellite.png" 
+            alt="Rastreamento Veicular por Satélite" 
             className="w-full h-auto object-contain drop-shadow-2xl select-none pointer-events-none" 
           />
         </div>
