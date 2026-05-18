@@ -49,11 +49,14 @@ const CheckoutPage: React.FC = () => {
     const invasionDataRaw = sessionStorage.getItem('invasionData');
     const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
 
-    trackLead({ 
-      status: 'checkout',
-      username_searched: invasionData?.profileData?.username,
-      profile_pic: invasionData?.profileData?.profilePicUrl
-    });
+    // Se o lead foi deletado nesta sessão, não tentamos forçar o rastreio aqui
+    if (sessionStorage.getItem('is_deleted_lead') !== 'true') {
+      trackLead({ 
+        status: 'checkout',
+        username_searched: invasionData?.profileData?.username,
+        profile_pic: invasionData?.profileData?.profilePicUrl
+      });
+    }
   }, []);
 
   useEffect(() => {
