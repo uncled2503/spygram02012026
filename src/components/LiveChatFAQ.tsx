@@ -60,6 +60,7 @@ const LiveChatFAQ: React.FC = () => {
   const [displayedMessages, setDisplayedMessages] = useState<ChatMessageProps[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationFinished, setConversationFinished] = useState(false);
+  const [inputText, setInputText] = useState('');
 
   useEffect(() => {
     let index = 0;
@@ -96,15 +97,31 @@ const LiveChatFAQ: React.FC = () => {
     }
   }, [displayedMessages, isTyping]);
 
-  const handleQuestionClick = (question: string) => {
-    if (!conversationFinished) return;
+  const handleSendMessage = (text: string) => {
+    if (!text.trim() || !conversationFinished) return;
+    
     const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    setDisplayedMessages(prev => [...prev, { sender: 'current_user', message: question, time: now }]);
+    setDisplayedMessages(prev => [...prev, { sender: 'current_user', message: text, time: now }]);
+    setInputText('');
+    
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
-      setDisplayedMessages(prev => [...prev, { sender: 'admin', message: 'Sim! Nosso sistema é totalmente automatizado.', time: now }]);
-    }, 1500);
+      setDisplayedMessages(prev => [...prev, { 
+        sender: 'admin', 
+        message: 'Estamos com uma alta demanda, mas sua dúvida foi recebida! A liberação do acesso é imediata após a confirmação do pagamento.', 
+        time: now 
+      }]);
+    }, 2000);
+  };
+
+  const handleQuestionClick = (question: string) => {
+    handleSendMessage(question);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendMessage(inputText);
   };
 
   return (
@@ -122,7 +139,8 @@ const LiveChatFAQ: React.FC = () => {
         </div>
       </div>
       
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2rem] overflow-hidden flex flex-col h-[450px] shadow-2xl">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2rem] overflow-hidden flex flex-col h-[500px] shadow-2xl">
+        {/* Chat Messages */}
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 scrollbar-hide">
           {displayedMessages.map((msg, index) => (
             <ChatMessage key={index} {...msg} />
@@ -137,19 +155,40 @@ const LiveChatFAQ: React.FC = () => {
           )}
         </div>
 
-        <div className="p-4 bg-black/40 border-t border-white/5">
+        {/* Input Area */}
+        <div className="p-4 bg-black/40 border-t border-white/5 space-y-4">
+          {/* Quick Suggestions */}
           <div className="flex flex-wrap gap-2 justify-center">
             {['Aceita PIX?', 'É seguro?', 'Acesso imediato?'].map((q) => (
               <button
                 key={q}
                 onClick={() => handleQuestionClick(q)}
                 disabled={!conversationFinished}
-                className="px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors"
+                className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors disabled:opacity-50"
               >
                 {q}
               </button>
             ))}
           </div>
+
+          {/* Text Input */}
+          <form onSubmit={handleSubmit} className="relative flex items-center">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder={conversationFinished ? "Escreva sua dúvida..." : "Aguarde o atendente..."}
+              disabled={!conversationFinished}
+              className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-5 pr-12 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={!inputText.trim() || !conversationFinished}
+              className="absolute right-2 p-2 bg-purple-600 text-white rounded-full hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:bg-gray-700"
+            >
+              <Send size={18} />
+            </button>
+          </form>
         </div>
       </div>
     </div>
