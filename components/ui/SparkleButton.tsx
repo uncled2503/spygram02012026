@@ -11,18 +11,18 @@ interface SparkleButtonProps {
 
 const SparkleButton: React.FC<SparkleButtonProps> = ({ children, onClick, disabled = false, checkoutUrl }) => {
   const baseButtonClasses = `
-    relative z-10 flex items-center justify-center gap-1 rounded-full border-none
-    px-4 py-2 text-sm font-medium text-white
+    relative z-10 flex items-center justify-center gap-2 rounded-full border-none
+    px-6 py-3 text-sm font-bold text-white w-full
     bg-gradient-to-r from-purple-600 via-pink-500 to-yellow-400
     transition-all duration-300 ease-in-out
     focus:outline-none 
     disabled:opacity-50 disabled:cursor-not-allowed
-    mx-auto
   `;
 
   const interactiveClasses = `
     cursor-pointer
     active:scale-95
+    hover:brightness-110
   `;
 
   const handleButtonClick = () => {
@@ -34,9 +34,9 @@ const SparkleButton: React.FC<SparkleButtonProps> = ({ children, onClick, disabl
   };
 
   return (
-    <div className={cn("relative w-full overflow-hidden", !disabled && "group")}>
-      {/* O div para o brilho desfocado (agora sem blur-xl) */}
-      <div className="absolute inset-2 bg-gradient-to-r from-pink-600 via-purple-600 to-yellow-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+    <div className={cn("relative w-full overflow-visible", !disabled && "group")}>
+      {/* Efeito de brilho externo */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 via-purple-600 to-yellow-500 rounded-full opacity-0 group-hover:opacity-100 blur-md transition duration-500 animate-pulse"></div>
       
       <button
         onClick={handleButtonClick}
@@ -46,8 +46,8 @@ const SparkleButton: React.FC<SparkleButtonProps> = ({ children, onClick, disabl
           !disabled && interactiveClasses
         )}
       >
-        <Sparkles className="w-4 h-4 text-white" /> {/* Reduzido o tamanho do ícone */}
-        <span className="text-center">{children}</span>
+        <Sparkles className="w-4 h-4 text-white" />
+        <span className="text-center uppercase tracking-widest">{children}</span>
       </button>
     </div>
   );

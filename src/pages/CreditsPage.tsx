@@ -132,16 +132,17 @@ const CreditsPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-8 px-4">
-          <div className="w-full max-w-xs">
+        {/* Rodapé Centralizado */}
+        <div className="flex flex-col items-center justify-center gap-8 px-4 w-full">
+          <div className="w-full max-w-xs mx-auto">
             <SparkleButton onClick={handleInvadeClick}>
               Realizar Nova Invasão
             </SparkleButton>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 sm:gap-3 bg-red-600/10 border border-red-600/20 text-red-500 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full mb-4 backdrop-blur-md">
-              <ShieldCheck className="w-4 sm:w-5 h-4 sm:h-5" />
+            <div className="inline-flex items-center gap-2 sm:gap-3 bg-red-600/10 border border-red-600/20 text-red-500 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full mb-4 backdrop-blur-md">
+              <ShieldCheck className="w-4 sm:w-5 h-4 sm:h-5 text-red-500" />
               <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Gateway de Pagamento Seguro</span>
             </div>
             <p className="text-gray-600 text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.5em]">SpyGram © 2024 Intelligence</p>
