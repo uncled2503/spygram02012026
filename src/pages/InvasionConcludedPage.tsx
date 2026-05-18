@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'export-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProfileData, SuggestedProfile } from '../../types';
 import { ShieldCheck, ChevronDown, Award, Zap, Lock, MapPin, Search } from 'lucide-react';
