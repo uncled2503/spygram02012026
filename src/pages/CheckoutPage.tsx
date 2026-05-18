@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, ChevronRight, QrCode } from 'lucide-react';
+import { ShoppingCart, ChevronRight, QrCode, ShieldCheck, Lock, Check } from 'lucide-react';
 import SalesNotification from '../components/SalesNotification';
 import PixPaymentDisplay from '../components/PixPaymentDisplay';
 import { supabase } from '../integrations/supabase/client';
@@ -25,7 +25,7 @@ const maskPhone = (value: string) => {
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(252);
+  const [timeLeft, setTimeLeft] = useState(240); // 4 minutos
   const [isProcessing, setIsProcessing] = useState(false);
   const [pixData, setPixData] = useState<any>(null);
   
@@ -63,10 +63,10 @@ const CheckoutPage: React.FC = () => {
 
   const basePrice = 29.90;
   const bumpDetails = {
-    pro: { title: 'ACESSO VITALÍCIO PRO', price: 9.90, img: '/order-bumps/vitalicio.jpg' },
-    social: { title: 'ESPIÃO SOCIAL COMPLETO', price: 19.90, img: '/order-bumps/social.jpg' },
-    recover: { title: 'RECUPERADOR DE MENSAGENS', price: 15.90, img: '/order-bumps/recover.jpg' },
-    track: { title: 'RASTREAMENTO 24H', price: 15.90, img: '/order-bumps/track.jpg' }
+    pro: { title: 'ACESSO VITALÍCIO PRO', price: 9.90, img: '/order-bumps/vitalicio.jpg', desc: 'Garanta seu acesso para sempre sem taxas.' },
+    social: { title: 'ESPIÃO SOCIAL COMPLETO', price: 19.90, img: '/order-bumps/social.jpg', desc: 'Veja curtidas e seguidores ocultos.' },
+    recover: { title: 'RECUPERADOR DE MENSAGENS', price: 15.90, img: '/order-bumps/recover.jpg', desc: 'Recupere o que foi apagado há meses.' },
+    track: { title: 'RASTREAMENTO 24H', price: 15.90, img: '/order-bumps/track.jpg', desc: 'Localização em tempo real via satélite.' }
   };
 
   const adicionais = Object.keys(bumps).reduce((acc, key) => {
@@ -86,7 +86,6 @@ const CheckoutPage: React.FC = () => {
 
     const currentLeadId = sessionStorage.getItem('current_lead_id');
 
-    // Sincroniza dados antes
     await trackLead({
       email: formData.email,
       phone: formData.whatsapp,
@@ -104,7 +103,7 @@ const CheckoutPage: React.FC = () => {
                 document: formData.documento,
                 phone: formData.whatsapp,
                 amount: total,
-                leadId: currentLeadId // Enviando o ID do lead
+                leadId: currentLeadId
             },
         });
 
@@ -138,6 +137,10 @@ const CheckoutPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: maskedValue }));
   };
 
+  const toggleBump = (key: keyof typeof bumps) => {
+    setBumps(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   if (pixData) {
     return (
       <div className="min-h-screen bg-[#f4f4f4] py-12 px-4">
@@ -159,31 +162,93 @@ const CheckoutPage: React.FC = () => {
         VAGA GARANTIDA POR: <span className="ml-2 font-mono">{formatTimer(timeLeft)}</span>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-8">
+      <div className="max-w-xl mx-auto px-4 py-6">
+        {/* Banner de Topo */}
+        <img src="/banner-topo.png" alt="Banner Topo" className="w-full h-auto mb-6 rounded-lg shadow-sm" />
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8">
+          
+          {/* Dados Pessoais */}
           <div>
-            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">1. DADOS PESSOAIS</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Nome completo" className="w-full border rounded-lg px-4 py-3 text-sm outline-none" />
-              <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF" className="w-full border rounded-lg px-4 py-3 text-sm outline-none" />
-              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="E-mail" className="w-full border rounded-lg px-4 py-3 text-sm outline-none" />
-              <input type="email" name="confirmarEmail" value={formData.confirmarEmail} onChange={handleChange} placeholder="Confirmar e-mail" className="w-full border rounded-lg px-4 py-3 text-sm outline-none" />
-              <div className="md:col-span-2"><input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="Telefone" className="w-full border rounded-lg px-4 py-3 text-sm outline-none" /></div>
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-500" /> 1. DADOS PESSOAIS
+            </h2>
+            <div className="grid grid-cols-1 gap-4">
+              <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Nome completo" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#78cc6d] transition-all" />
+              <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#78cc6d] transition-all" />
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="E-mail" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#78cc6d] transition-all" />
+              <input type="email" name="confirmarEmail" value={formData.confirmarEmail} onChange={handleChange} placeholder="Confirmar e-mail" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#78cc6d] transition-all" />
+              <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="Telefone com DDD" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#78cc6d] transition-all" />
             </div>
           </div>
 
+          {/* Pagamento */}
           <div>
-            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">2. PAGAMENTO</h2>
-            <div className="border-2 border-green-500 rounded-lg p-4 w-fit bg-white flex flex-col items-center">
-              <QrCode className="text-green-500 mb-1" />
-              <span className="text-[10px] font-bold">PIX</span>
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-500" /> 2. PAGAMENTO
+            </h2>
+            <div className="border-2 border-green-500 rounded-xl p-4 w-fit bg-white flex flex-col items-center gap-1 shadow-sm">
+              <QrCode className="text-green-500 w-8 h-8" />
+              <span className="text-[10px] font-black uppercase">PIX</span>
             </div>
           </div>
 
-          <button onClick={handleFinalize} disabled={isProcessing} className="w-full bg-[#78cc6d] text-white py-4 rounded-xl font-black text-lg uppercase shadow-lg active:scale-95 transition-all">
-            {isProcessing ? 'GERANDO...' : `PAGAR R$ ${total.toFixed(2)}`}
-          </button>
+          {/* Order Bumps */}
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">OFERTAS EXCLUSIVAS</h2>
+            
+            {Object.entries(bumpDetails).map(([key, item]) => (
+              <div 
+                key={key}
+                onClick={() => toggleBump(key as keyof typeof bumps)}
+                className={`relative flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${bumps[key as keyof typeof bumps] ? 'border-[#78cc6d] bg-green-50' : 'border-gray-100 hover:border-gray-200'}`}
+              >
+                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-[11px] font-black leading-tight mb-1">{item.title}</h3>
+                  <p className="text-[9px] text-gray-500 leading-tight mb-1">{item.desc}</p>
+                  <p className="text-xs font-bold text-[#78cc6d]">POR APENAS R$ {item.price.toFixed(2).replace('.', ',')}</p>
+                </div>
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${bumps[key as keyof typeof bumps] ? 'bg-[#78cc6d] border-[#78cc6d]' : 'border-gray-200'}`}>
+                  {bumps[key as keyof typeof bumps] && <Check className="w-4 h-4 text-white" />}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-gray-500 font-bold uppercase text-xs">Total a pagar:</span>
+              <span className="text-2xl font-black text-gray-800">R$ {total.toFixed(2).replace('.', ',')}</span>
+            </div>
+            
+            <button 
+              onClick={handleFinalize} 
+              disabled={isProcessing} 
+              className="w-full bg-[#78cc6d] hover:bg-[#6ab961] text-white py-5 rounded-2xl font-black text-lg uppercase shadow-[0_4px_20px_rgba(120,204,109,0.3)] active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              {isProcessing ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>FINALIZAR COMPRA <ChevronRight className="w-5 h-5" /></>
+              )}
+            </button>
+          </div>
+
+          {/* Banner de Segurança */}
+          <div className="flex flex-col items-center gap-4 pt-4">
+             <img src="/embaixodobanner.png" alt="Segurança" className="w-full h-auto opacity-80" />
+             <div className="flex items-center gap-2 text-gray-400 text-[10px] font-bold uppercase">
+               <ShieldCheck className="w-4 h-4" /> COMPRA 100% SEGURA E CRIPTOGRAFADA
+             </div>
+          </div>
         </div>
+
+        <footer className="mt-8 text-center space-y-4">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">© 2024 SpyGram System - All Rights Reserved</p>
+        </footer>
       </div>
     </div>
   );
