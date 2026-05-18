@@ -4,7 +4,8 @@ import { supabase } from '../integrations/supabase/client';
 import { 
   Users, DollarSign, Target, TrendingUp, Search, Calendar, 
   MapPin, ExternalLink, Smartphone, Monitor, ShieldCheck, 
-  CreditCard, Eye, ArrowUpRight, Filter, Download, LogOut, RotateCcw
+  CreditCard, Eye, ArrowUpRight, Filter, Download, LogOut, RotateCcw,
+  Beaker
 } from 'lucide-react';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
@@ -67,6 +68,30 @@ const AdminPage: React.FC = () => {
     fetchLeads(true);
   };
 
+  const handleCreateTestLead = async () => {
+    const testData = {
+      username_searched: 'neymarjr',
+      full_name: 'Neymar Jr (Teste)',
+      email: 'teste@spygram.com',
+      phone: '(11) 99999-9999',
+      document: '123.456.789-00',
+      status: 'checkout',
+      total_amount: 29.90,
+      city: 'Santos',
+      state: 'São Paulo',
+      user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+    };
+
+    const { error } = await supabase.from('leads').insert([testData]);
+    
+    if (error) {
+      toast.error('Erro ao gerar lead teste.');
+    } else {
+      toast.success('Lead de teste gerado com sucesso!');
+      fetchLeads(true);
+    }
+  };
+
   // Métricas Calculadas
   const metrics = useMemo(() => {
     const total = leads.length;
@@ -75,24 +100,13 @@ const AdminPage: React.FC = () => {
     const checkouts = leads.filter(l => l.status === 'checkout' || l.status === 'gerou_pix' || l.status === 'pagou');
     const revenue = paid.reduce((acc, curr) => acc + (Number(curr.total_amount) || 0), 0);
     
-    // Contagem por cidade
-    const cities: {[key: string]: number} = {};
-    leads.forEach(l => { if(l.city) cities[l.city] = (cities[l.city] || 0) + 1 });
-    const topCities = Object.entries(cities).sort((a,b) => b[1] - a[1]).slice(0, 5);
-
-    // Contagem por dispositivo
-    let mobile = 0;
-    leads.forEach(l => { if(l.user_agent?.toLowerCase().includes('mobile')) mobile++ });
-
     return {
       total,
       paidCount: paid.length,
       pixCount: pixGenerated.length,
       checkoutCount: checkouts.length,
       revenue,
-      conversion: total > 0 ? (paid.length / total) * 100 : 0,
-      topCities,
-      mobilePercentage: total > 0 ? (mobile / total) * 100 : 0
+      conversion: total > 0 ? (paid.length / total) * 100 : 0
     };
   }, [leads]);
 
@@ -131,6 +145,15 @@ const AdminPage: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          {/* Botão Gerar Teste */}
+          <button 
+            onClick={handleCreateTestLead}
+            className="flex items-center gap-2 px-4 py-2.5 bg-purple-600/10 border border-purple-600/20 text-purple-400 rounded-xl hover:bg-purple-600/20 transition-all text-xs font-bold uppercase tracking-widest"
+          >
+            <Beaker className="w-4 h-4" />
+            <span className="hidden sm:inline">Gerar Lead Teste</span>
+          </button>
+
           {/* Botão Atualizar */}
           <button 
             onClick={handleRefresh}
@@ -142,7 +165,7 @@ const AdminPage: React.FC = () => {
 
           {/* Faturamento */}
           <div className="bg-purple-600 px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-purple-600/20">
-            <DollarSign className="w-4 h-4" />
+            <DollarSign className="w-4 h-4 text-white" />
             <span className="font-black text-white text-sm">R$ {metrics.revenue.toFixed(2)}</span>
           </div>
 
@@ -175,7 +198,7 @@ const AdminPage: React.FC = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input 
                   type="text" 
-                  placeholder="Buscar por @username, Nome, Email, CPF ou Telefone..." 
+                  placeholder="Buscar por @username, Nome, Email..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-black/50 border border-gray-800 rounded-2xl py-3 pl-12 pr-4 text-sm focus:border-purple-500 outline-none transition-all"
