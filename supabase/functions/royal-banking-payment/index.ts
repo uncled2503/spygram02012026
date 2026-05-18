@@ -13,19 +13,23 @@ serve(async (req) => {
   try {
     const ROYAL_BANKING_TOKEN = Deno.env.get('ROYAL_BANKING_TOKEN')
     if (!ROYAL_BANKING_TOKEN) {
-      console.error("[royal-banking-payment] ROYAL_BANKING_TOKEN não configurada no Supabase.");
+      console.error("[royal-banking-payment] ROYAL_BANKING_TOKEN não configurada.");
       throw new Error('Configuração de token pendente.')
     }
 
     const { name, email, document, phone, amount, items } = await req.json()
 
-    // Payload para a API da Royal Banking (Baseado na integração padrão REST)
+    // Higienização de documentos e telefone (apenas números)
+    const cleanDocument = document.replace(/\D/g, '');
+    const cleanPhone = phone.replace(/\D/g, '');
+
+    // Payload estruturado conforme a documentação da Royal Banking para Transações
     const payload = {
       customer: {
-        name,
-        email,
-        document,
-        phone: phone.replace(/\D/g, '')
+        name: name,
+        email: email,
+        document: cleanDocument,
+        phone: cleanPhone
       },
       payment_method: 'pix',
       amount: Math.round(amount * 100), // Valor em centavos
@@ -34,16 +38,18 @@ serve(async (req) => {
         unit_price: Math.round(item.price * 100),
         quantity: 1
       })),
+      // URL de Postback para notificações de status de pagamento
       postback_url: 'https://wdxgxbvrealcalipuzay.supabase.co/functions/v1/payment-webhook'
     }
 
-    console.log("[royal-banking-payment] Iniciando requisição para Royal Banking...");
+    console.log("[royal-banking-payment] Enviando transação para Royal Banking...");
 
-    const response = await fetch('https://api.royalbanking.com.br/api/v1/checkout', {
+    const response = await fetch('https://api.royalbanking.com.br/api/v1/transaction', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ROYAL_BANKING_TOKEN}`
+        'Authorization': `Bearer ${ROYAL_BANKING_TOKEN}`,
+        'Accept': 'application/json'
       },
       body: JSON.stringify(payload)
     })
@@ -51,19 +57,23 @@ serve(async (req) => {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error("[royal-banking-payment] Erro na API Royal Banking:", data);
-      return new Response(JSON.stringify({ error: data.message || 'Erro na API de pagamentos' }), {
+      console.error("[royal-banking-payment] Erro na Resposta:", data);
+      return new Response(JSON.stringify({ 
+        error: data.message || 'Erro ao processar transação na Royal Banking',
+        details: data.errors || null
+      }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // A API geralmente retorna 'pix_url', 'pix_qrcode' ou um link de checkout
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error) {
-    console.error("[royal-banking-payment] Erro interno:", error.message)
+    console.error("[royal-banking-payment] Falha crítica:", error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
