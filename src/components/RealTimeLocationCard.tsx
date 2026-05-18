@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ProfileData } from '../../types';
-import ProfileMapPin from './ProfileMapPin'; // Importa o novo componente
+import ProfileMapPin from './ProfileMapPin';
+import ShineButton from './ui/ShineButton';
 
 interface RealTimeLocationCardProps {
   profileData: ProfileData;
   userCity: string;
-  onUnlockClick: () => void; // Adiciona a prop de clique
+  onUnlockClick: () => void;
 }
 
 const RealTimeLocationCard: React.FC<RealTimeLocationCardProps> = ({ profileData, userCity, onUnlockClick }) => {
@@ -23,7 +24,7 @@ const RealTimeLocationCard: React.FC<RealTimeLocationCardProps> = ({ profileData
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, delay: 0.5 }}
-      className="mt-16 mb-12 p-0 text-center w-full mx-auto" // Removido padding, fundo e arredondamento
+      className="mt-16 mb-12 p-0 text-center w-full mx-auto"
     >
       <h2 className="text-3xl font-extrabold text-white mb-4">
         <span className="bg-gradient-to-r from-red-500 to-pink-600 text-transparent bg-clip-text">
@@ -44,7 +45,7 @@ const RealTimeLocationCard: React.FC<RealTimeLocationCardProps> = ({ profileData
         </p>
       )}
       
-      {/* Map Mockup with Profile Picture Marker (Novo Mapa) */}
+      {/* Map Mockup with Profile Picture Marker */}
       <div className="relative w-full max-w-xs mx-auto aspect-square bg-[#1a1a1a] rounded-2xl overflow-hidden mb-6 border border-red-700/50">
         {/* Simulated Map Grid Background */}
         <div className="absolute inset-0 opacity-20" style={{
@@ -57,7 +58,7 @@ const RealTimeLocationCard: React.FC<RealTimeLocationCardProps> = ({ profileData
           <div className="absolute left-1/4 top-0 h-full w-1 bg-gray-700/50 transform rotate-[5deg]"></div>
         </div>
         
-        {/* Animated Radar Effect (Outer Ring) */}
+        {/* Animated Radar Effect */}
         <motion.div
           animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -71,18 +72,11 @@ const RealTimeLocationCard: React.FC<RealTimeLocationCardProps> = ({ profileData
           <ProfileMapPin 
             profilePicUrl={profileData.profilePicUrl} 
             username={profileData.username} 
-            size={50} // Tamanho ajustado para caber no mapa
+            size={50}
           />
         </div>
 
-        {/* Location Text Overlay (Balão) */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/90 px-8 py-4 rounded-full border border-red-600 shadow-xl opacity-0">
-          <p className="text-xl font-bold text-red-400">
-            PERTO DE {locationText}
-          </p>
-        </div>
-
-        {/* BOTÃO DESCOBRIR LOCALIZAÇÃO (Posicionado mais acima e menor) */}
+        {/* BOTÃO DESCOBRIR LOCALIZAÇÃO (Interno) */}
         <div className="absolute bottom-1/4 left-1/2 transform -translate-x-1/2 w-[60%]">
           <button
             onClick={onUnlockClick}
@@ -93,9 +87,18 @@ const RealTimeLocationCard: React.FC<RealTimeLocationCardProps> = ({ profileData
         </div>
       </div>
       
-      <p className="text-sm text-red-400 font-semibold">
+      <p className="text-sm text-red-400 font-semibold mb-8">
         Atenção: A localização é atualizada a cada 5 minutos. Não perca essa chance!
       </p>
+
+      {/* Novo CTA de Destaque */}
+      <ShineButton 
+        onClick={onUnlockClick} 
+        className="w-full bg-red-600 focus:ring-red-500 active:scale-95"
+        shineColorClasses="bg-red-600"
+      >
+        RASTREAR LOCALIZAÇÃO AGORA
+      </ShineButton>
     </motion.div>
   );
 };
