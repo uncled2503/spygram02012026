@@ -126,7 +126,7 @@ const CheckoutPage: React.FC = () => {
             {/* Google Reviews Seal */}
             <div className="w-full max-w-md mt-6 bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_\"G\"_logo.svg" alt="Google" className="w-8 h-8" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="w-8 h-8" />
                     <div className="text-left">
                         <p className="text-[11px] font-black text-[#444] uppercase leading-none">GOOGLE REVIEWS:</p>
                         <p className="text-[11px] font-black text-[#444]">(12,3mil) Avaliações</p>
@@ -211,7 +211,7 @@ const CheckoutPage: React.FC = () => {
 
             <div className="px-1">
                 <label className="text-sm font-black text-gray-700 mb-1.5 block">CPF ou CNPJ</label>
-                <input type="tel" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
+                <input type="tel" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
             </div>
           </div>
         </section>
@@ -235,7 +235,7 @@ const CheckoutPage: React.FC = () => {
 
             <div className="space-y-4">
                 {(Object.keys(bumps) as Array<keyof typeof bumps>).map((key) => (
-                    <div key={key} className="p-4 border border-gray-100 rounded-2xl flex flex-col items-center bg-[#fcfcfc] text-center">
+                    <div key={key} className="p-4 border border-gray-200 rounded-2xl flex flex-col items-center bg-[#fcfcfc] text-center">
                         <img src={bumpDetails[key].img} alt="" className="w-20 h-20 object-contain mb-3" />
                         <div className="flex-1 flex flex-col items-center">
                             <input type="checkbox" checked={bumps[key]} onChange={() => handleToggleBump(key)} className="w-5 h-5 rounded border-gray-300 text-green-600 mb-2 cursor-pointer" />
