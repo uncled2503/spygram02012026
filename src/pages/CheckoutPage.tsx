@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ChevronRight, ShoppingCart, Clock, Star, Check, Mail, Phone, User, CreditCard, Banknote, QrCode } from 'lucide-react';
 import SalesNotification from '../components/SalesNotification';
+import PixPaymentDisplay from '../components/PixPaymentDisplay';
 import { supabase } from '../integrations/supabase/client';
 import toast from 'react-hot-toast';
 
@@ -38,6 +39,7 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(252);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pixData, setPixData] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -137,32 +139,23 @@ const CheckoutPage: React.FC = () => {
 
         if (error) throw error;
 
-        // Se a API retornou o código Pix Copia e Cola
         if (data.paymentCode) {
-            // Copia para o clipboard automaticamente para facilitar para o usuário
-            try {
-                await navigator.clipboard.writeText(data.paymentCode);
-                toast.success("Código Pix Copiado!", { id: toastId });
-            } catch (err) {
-                toast.success("Pix gerado com sucesso!", { id: toastId });
-            }
-            
-            // Como não podemos alterar o layout, usamos um alert para mostrar o código se necessário 
-            // ou apenas informamos que foi copiado.
-            alert("PIX COPIA E COLA GERADO E COPIADO!\n\nCole no seu banco para pagar:\n\n" + data.paymentCode);
-            
-            sessionStorage.setItem('hasPurchased', 'true');
+            setPixData({
+              paymentCode: data.paymentCode,
+              paymentCodeBase64: data.paymentCodeBase64,
+              idTransaction: data.idTransaction,
+              amount: total
+            });
+            toast.success("PIX Gerado com Sucesso!", { id: toastId });
         } else if (data.checkout_url || data.pix_url || data.url) {
             window.location.href = data.checkout_url || data.pix_url || data.url;
         } else {
-            // Fallback para PerfectPay caso não haja retorno direto
             window.location.href = CHECKOUT_URL;
         }
 
     } catch (err) {
         console.error("Erro na integração:", err);
         toast.error("Erro ao gerar PIX. Redirecionando para servidor seguro...", { id: toastId });
-        
         setTimeout(() => {
             window.location.href = CHECKOUT_URL;
         }, 2000);
@@ -173,14 +166,12 @@ const CheckoutPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
     let maskedValue = value;
     if (name === 'documento') {
       maskedValue = maskCPFOrCNPJ(value);
     } else if (name === 'whatsapp') {
       maskedValue = maskPhone(value);
     }
-
     setFormData(prev => ({ ...prev, [name]: maskedValue }));
   };
 
@@ -203,6 +194,23 @@ const CheckoutPage: React.FC = () => {
       </div>
     </div>
   );
+
+  if (pixData) {
+    return (
+      <div className="min-h-screen bg-[#f4f4f4] py-12 px-4">
+        <PixPaymentDisplay 
+          paymentCode={pixData.paymentCode}
+          paymentCodeBase64={pixData.paymentCodeBase64}
+          transactionId={pixData.idTransaction}
+          amount={pixData.amount}
+          onConfirm={() => {
+            sessionStorage.setItem('hasPurchased', 'true');
+            toast.success("Aguardando confirmação automática...");
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f4f4] text-[#333] font-sans">
@@ -238,14 +246,11 @@ const CheckoutPage: React.FC = () => {
 
         {/* MAIN GRID WEB */}
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-12 gap-8 items-start pb-20">
-            
             <div className="col-span-8 space-y-8">
-                
                 <div className="rounded-2xl overflow-hidden shadow-2xl relative">
                     <img src="/embaixodobanner.png" className="w-full h-auto block" alt="SpyGram PRO" />
                 </div>
 
-                {/* Step 1: Personal Data Desktop */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-8">
                         <div className="flex items-center gap-4 mb-8">
@@ -283,14 +288,12 @@ const CheckoutPage: React.FC = () => {
                             <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center font-black">2</div>
                             <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">PAGAMENTO</h2>
                         </div>
-                        
                         <div className="grid grid-cols-1 gap-2 mb-6 max-w-[150px]">
                             <div className="border-2 border-green-500 rounded-lg py-3 flex flex-col items-center gap-1 bg-white relative">
                                 <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5"><Check size={10} /></div>
                                 <QrCode size={18} className="text-green-500" /> <span className="text-[10px] font-bold">Pix</span>
                             </div>
                         </div>
-
                         <div className="bg-[#fcfcfc] border border-gray-100 rounded-lg p-6 mb-8 text-[11px] text-gray-500 space-y-4">
                             <p>01. Pagamento em segundos, sem complicações</p>
                             <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
@@ -305,76 +308,36 @@ const CheckoutPage: React.FC = () => {
                             <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center font-black">3</div>
                             <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">COMPRE JUNTO</h2>
                         </div>
-
                         <div className="bg-[#78cc6d] text-white px-4 py-1 rounded-sm text-[10px] font-black uppercase w-fit mb-4">APROVEITE!</div>
                         <p className="text-xs font-medium text-gray-500 mb-6">70% das pessoas que compraram Relatório SpyGram Completo também se interessaram por:</p>
-
                         <div className="space-y-4 mb-10">
                             <DesktopOrderBump id="pro" details={bumpDetails.pro} checked={bumps.pro} />
                             <DesktopOrderBump id="social" details={bumpDetails.social} checked={bumps.social} />
                             <DesktopOrderBump id="recover" details={bumpDetails.recover} checked={bumps.recover} />
                             <DesktopOrderBump id="track" details={bumpDetails.track} checked={bumps.track} />
                         </div>
-
-                        <button 
-                            onClick={handleFinalize} 
-                            disabled={isProcessing}
-                            className={`w-full bg-[#78cc6d] hover:bg-[#6ab961] text-white py-4 rounded-xl font-black text-xl uppercase flex items-center justify-center gap-3 shadow-xl transition-transform active:scale-[0.98] ${isProcessing ? 'opacity-70 cursor-wait' : ''}`}
-                        >
+                        <button onClick={handleFinalize} disabled={isProcessing} className={`w-full bg-[#78cc6d] hover:bg-[#6ab961] text-white py-4 rounded-xl font-black text-xl uppercase flex items-center justify-center gap-3 shadow-xl transition-transform active:scale-[0.98] ${isProcessing ? 'opacity-70 cursor-wait' : ''}`}>
                             {isProcessing ? 'Processando...' : 'Finalizar Compra'} <ChevronRight />
                         </button>
-                        
-                        <div className="mt-4 flex flex-col items-center gap-2">
-                             <div className="flex items-center gap-2 text-[11px] font-bold text-[#78cc6d] uppercase">
-                                <ShieldCheck size={16} /> Pagamento 100% seguro, processado com criptografia 128bits.
-                            </div>
-                            <p className="text-[10px] text-gray-400 text-center">Produto digital, os dados para acesso serão enviados por email.</p>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <div className="col-span-4 sticky top-16">
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="bg-[#bdbdbd]/20 py-3 text-center">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">RESUMO DA COMPRA</span>
-                    </div>
+                    <div className="bg-[#bdbdbd]/20 py-3 text-center"><span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">RESUMO DA COMPRA</span></div>
                     <div className="p-8 flex flex-col items-center">
                         <img src="/spygram_transparentebranco.png" className="h-20 brightness-0 mb-6" alt="SpyGram" />
                         <h3 className="text-sm font-black text-gray-800 uppercase text-center mb-1">Relatório SpyGram Completo</h3>
-                        <p className="text-[10px] text-gray-400 font-bold mb-8">Relatório Completo SpyGram® 🕵️ ✅</p>
-
-                        <div className="w-full space-y-4 text-xs">
-                            <div className="flex justify-between font-bold text-gray-500">
-                                <span>Relatório SpyGram Completo</span>
-                                <span className="text-gray-800">R$ {basePrice.toFixed(2).replace('.', ',')}</span>
-                            </div>
-                            {adicionais > 0 && (
-                                <div className="flex justify-between font-bold text-gray-500">
-                                    <span>Adicionais</span>
-                                    <span className="text-gray-800">+ R$ {adicionais.toFixed(2).replace('.', ',')}</span>
-                                </div>
-                            )}
-                            <div className="pt-4 border-t border-gray-100 flex justify-between items-center bg-gray-50 -mx-8 px-8 py-4">
-                                <span className="font-black text-gray-800">Total Hoje:</span>
-                                <span className="text-base font-black text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span>
-                            </div>
+                        <div className="w-full space-y-4 text-xs mt-8">
+                            <div className="flex justify-between font-bold text-gray-500"><span>Relatório SpyGram Completo</span><span className="text-gray-800">R$ {basePrice.toFixed(2).replace('.', ',')}</span></div>
+                            {adicionais > 0 && <div className="flex justify-between font-bold text-gray-500"><span>Adicionais</span><span className="text-gray-800">+ R$ {adicionais.toFixed(2).replace('.', ',')}</span></div>}
+                            <div className="pt-4 border-t border-gray-100 flex justify-between items-center bg-gray-50 -mx-8 px-8 py-4"><span className="font-black text-gray-800">Total Hoje:</span><span className="text-base font-black text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <footer className="bg-white border-t border-gray-100 py-12">
-            <div className="max-w-6xl mx-auto px-4">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase">E-MAIL DE SUPORTE: contato@spygram.com.br</p>
-                    <div className="bg-[#78cc6d] text-white px-4 py-2 rounded-md flex items-center gap-2 text-[10px] font-black uppercase">
-                        <ShieldCheck size={14} /> COMPRA 100% SEGURA
-                    </div>
-                </div>
-            </div>
-        </footer>
       </div>
 
       {/* --- VERSÃO MOBILE --- */}
@@ -382,28 +345,19 @@ const CheckoutPage: React.FC = () => {
         <div className="w-full bg-white pb-8 relative overflow-hidden">
           <div className="absolute inset-0 z-0 opacity-30 grayscale blur-3xl scale-110 pointer-events-none" style={{ backgroundImage: 'url(/banner-topo.png)', backgroundSize: 'cover', backgroundPosition: 'center top' }} />
           <div className="w-full max-lg mx-auto flex flex-col items-center relative z-10">
-              <div className="w-full relative px-4 pt-4">
-                  <img src="/banner-topo.png" alt="SpyGram Community" className="w-full h-auto relative z-10" />
-              </div>
+              <div className="w-full relative px-4 pt-4"><img src="/banner-topo.png" alt="SpyGram Community" className="w-full h-auto relative z-10" /></div>
               <div className="w-full max-w-[92%] mt-6 bg-white border border-gray-100 rounded-[1.25rem] p-4 flex items-center gap-4 shadow-md">
                   <div className="bg-[#f8f8f8] p-2 rounded-lg"><ShoppingCart className="w-5 h-5 text-gray-800" /></div>
-                  <div className="text-left">
-                      <p className="text-[10px] font-bold text-[#888] uppercase leading-none tracking-tight">VOCÊ ESTÁ ADQUIRINDO:</p>
-                      <p className="text-[12px] font-black text-[#111] mt-0.5">Relatório SpyGram Completo</p>
-                  </div>
+                  <div className="text-left"><p className="text-[10px] font-bold text-[#888] uppercase leading-none tracking-tight">VOCÊ ESTÁ ADQUIRINDO:</p><p className="text-[12px] font-black text-[#111] mt-0.5">Relatório SpyGram Completo</p></div>
               </div>
-              <div className="w-full px-4 mt-6">
-                  <img src="/embaixodobanner.png" alt="Promo" className="w-full h-auto rounded-2xl shadow-xl" />
-              </div>
+              <div className="w-full px-4 mt-6"><img src="/embaixodobanner.png" alt="Promo" className="w-full h-auto rounded-2xl shadow-xl" /></div>
           </div>
         </div>
 
-        <div className="max-w-md mx-auto px-4 mt-8 space-y-12">
+        <div className="max-w-md mx-auto px-4 mt-8 space-y-12 pb-12">
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-6">
-              <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
-                  <span className="font-black text-sm">1</span><h2 className="text-xs font-black uppercase tracking-widest">DADOS PESSOAIS</h2>
-              </div>
+              <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6"><span className="font-black text-sm">1</span><h2 className="text-xs font-black uppercase tracking-widest">DADOS PESSOAIS</h2></div>
               <div className="space-y-5">
                   <div><label className="text-sm font-black text-gray-700 mb-1.5 block">Nome completo</label><input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Digite seu nome completo" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none" /></div>
                   <div><label className="text-sm font-black text-gray-700 mb-1.5 block">CPF ou CNPJ</label><input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none" /></div>
@@ -416,66 +370,27 @@ const CheckoutPage: React.FC = () => {
 
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-6">
-              <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
-                  <span className="font-black text-sm">2</span><h2 className="text-xs font-black uppercase tracking-widest">PAGAMENTO</h2>
-              </div>
-              <div className="bg-[#fcfcfc] border border-gray-100 rounded-lg p-4 mb-6 text-[11px] text-gray-500 space-y-4">
-                  <p>01. Pagamento em segundos, sem complicações (PIX)</p><p>02. Basta escanear o QRCode que iremos gerar sua compra</p><p>03. O PIX é 100% seguro.</p>
-              </div>
+              <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6"><span className="font-black text-sm">2</span><h2 className="text-xs font-black uppercase tracking-widest">PAGAMENTO</h2></div>
+              <div className="bg-[#fcfcfc] border border-gray-100 rounded-lg p-4 mb-6 text-[11px] text-gray-500 space-y-4"><p>01. Pagamento em segundos, sem complicações (PIX)</p><p>02. Basta escanear o QRCode que iremos gerar sua compra</p><p>03. O PIX é 100% seguro.</p></div>
             </div>
           </section>
 
           <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 pt-6 pb-8">
-              <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
-                  <span className="font-black text-sm">3</span><h2 className="text-xs font-black uppercase tracking-widest">COMPRE JUNTO</h2>
-              </div>
+              <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6"><span className="font-black text-sm">3</span><h2 className="text-xs font-black uppercase tracking-widest">COMPRE JUNTO</h2></div>
               <div className="space-y-4">
                   {(Object.keys(bumpDetails) as Array<keyof typeof bumpDetails>).map((key) => (
-                      <div key={key} onClick={() => handleToggleBump(key as any)} className={`bg-[#f7f7f7] border-2 rounded-2xl p-4 flex gap-4 transition-all duration-300 ${bumps[key as keyof typeof bumps] ? 'border-[#78cc6d] shadow-md' : 'border-gray-100'}`}>
-                          <div className="w-20 h-20 flex-shrink-0"><img src={bumpDetails[key].img} alt="" className="w-full h-full object-contain" /></div>
-                          <div className="flex-1">
-                              <div className="bg-[#f8f8f8] p-3 rounded-xl flex flex-col gap-2">
-                                  <input type="checkbox" checked={bumps[key as keyof typeof bumps]} readOnly className="w-6 h-6 rounded border-gray-300 text-green-600" />
-                                  <p className="text-[10px] font-black text-gray-700 uppercase leading-tight">{bumpDetails[key].title} <span className="text-[#22c55e]">{bumpDetails[key].priceText}</span></p>
-                              </div>
-                              <p className="text-[11px] font-black text-[#f15c5c] mt-2 italic">{bumpDetails[key].desc}</p>
-                          </div>
-                      </div>
+                      <div key={key} onClick={() => handleToggleBump(key as any)} className={`bg-[#f7f7f7] border-2 rounded-2xl p-4 flex gap-4 transition-all duration-300 ${bumps[key as keyof typeof bumps] ? 'border-[#78cc6d] shadow-md' : 'border-gray-100'}`}><div className="w-20 h-20 flex-shrink-0"><img src={bumpDetails[key].img} alt="" className="w-full h-full object-contain" /></div><div className="flex-1"><div className="bg-[#f8f8f8] p-3 rounded-xl flex flex-col gap-2"><input type="checkbox" checked={bumps[key as keyof typeof bumps]} readOnly className="w-6 h-6 rounded border-gray-300 text-green-600" /><p className="text-[10px] font-black text-gray-700 uppercase leading-tight">{bumpDetails[key].title} <span className="text-[#22c55e]">{bumpDetails[key].priceText}</span></p></div><p className="text-[11px] font-black text-[#f15c5c] mt-2 italic">{bumpDetails[key].desc}</p></div></div>
                   ))}
               </div>
               <div className="mt-8 flex flex-col items-center">
-                  <button 
-                    onClick={handleFinalize} 
-                    disabled={isProcessing}
-                    className={`w-full bg-[#78cc6d] text-white py-4 rounded-xl font-black text-lg uppercase flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] ${isProcessing ? 'opacity-70' : ''}`}
-                  >
+                  <button onClick={handleFinalize} disabled={isProcessing} className={`w-full bg-[#78cc6d] text-white py-4 rounded-xl font-black text-lg uppercase flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] ${isProcessing ? 'opacity-70' : ''}`}>
                     {isProcessing ? 'Processando...' : 'Finalizar Compra'} <ChevronRight />
                   </button>
-                  <div className="mt-4 flex items-center gap-2 text-[11px] font-bold text-[#78cc6d] uppercase"><ShieldCheck size={16} /> Pagamento 100% seguro.</div>
               </div>
             </div>
           </section>
-
-          <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 pt-6 pb-6 flex flex-col items-center">
-                <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit mb-8 uppercase text-xs font-black">RESUMO DA COMPRA</div>
-                <img src="/logoapp.png" alt="SpyGram" className="h-32 mb-6" />
-                <h3 className="text-base font-black text-[#111] uppercase mb-1">Relatório SpyGram Completo</h3>
-                <div className="w-full space-y-4 pt-4 border-t border-gray-100 mt-4">
-                    <div className="flex justify-between text-xs font-medium text-gray-600"><span>Subtotal</span><span className="font-black">R$ {total.toFixed(2).replace('.', ',')}</span></div>
-                    <div className="flex justify-between items-center bg-[#fcfcfc] border border-gray-100 p-4 rounded-xl">
-                        <span className="text-sm font-black text-[#111]">Total Hoje:</span><span className="text-sm font-black text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                </div>
-            </div>
-          </section>
         </div>
-
-        <footer className="mt-20 border-t border-gray-200 pt-10 px-6 flex flex-col items-center pb-10">
-          <p className="text-xs font-bold text-gray-500 mb-8">E-MAIL DE SUPORTE: contato@spygram.com.br</p>
-          <div className="bg-[#78cc6d] text-white py-2 px-6 rounded-sm text-[11px] font-black uppercase flex items-center gap-2 shadow-sm mb-10"><ShieldCheck size={20} /> COMPRA 100% SEGURA</div>
-        </footer>
       </div>
     </div>
   );
