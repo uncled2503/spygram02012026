@@ -4,7 +4,7 @@ import { supabase } from '../integrations/supabase/client';
 import { 
   Users, DollarSign, Search, MapPin, ShieldCheck, 
   CreditCard, LogOut, RotateCcw,
-  Trash2, MessageCircle
+  Trash2, MessageCircle, UserPlus, Key
 } from 'lucide-react';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
@@ -83,6 +83,34 @@ const AdminPage: React.FC = () => {
       setLeads(prev => prev.filter(l => l.id !== id));
     } catch (error: any) {
       toast.error('Erro ao deletar: ' + error.message);
+    }
+  };
+
+  const handleCreateMember = async (email: string) => {
+    if (!email) {
+      toast.error('Lead não possui e-mail cadastrado.');
+      return;
+    }
+
+    const password = prompt('Defina a senha de acesso para este e-mail:', '123456');
+    if (!password) return;
+
+    try {
+      const { error } = await supabase
+        .from('members')
+        .insert([{ email: email.trim().toLowerCase(), password: password.trim() }]);
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Este e-mail já possui acesso liberado.');
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success(`Acesso liberado para ${email}!`);
+      }
+    } catch (err: any) {
+      toast.error('Erro ao liberar acesso: ' + err.message);
     }
   };
 
@@ -230,6 +258,13 @@ const AdminPage: React.FC = () => {
                   </td>
                   <td className="py-5 px-4">
                     <div className="flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => handleCreateMember(lead.email)}
+                        className="p-2 bg-purple-600/10 text-purple-500 rounded-lg hover:bg-purple-600/20 transition-all"
+                        title="Liberar Acesso (Membro)"
+                      >
+                        <Key size={16} />
+                      </button>
                       <button 
                         onClick={() => handleWhatsAppMessage(lead.phone)}
                         className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500/20 transition-all"
