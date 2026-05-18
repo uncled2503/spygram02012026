@@ -179,7 +179,13 @@ const InstagramFeedContent: React.FC<InstagramFeedContentProps> = ({ profileData
             return (
               <div key={index} onClick={() => onLockedFeatureClick(`ver os stories de @${story.username}`)} className="flex flex-col items-center flex-shrink-0 space-y-1 text-center relative cursor-pointer">
                 <div className={`w-[70px] h-[70px] rounded-full flex items-center justify-center p-0.5 ${ringClasses}`}>
-                  <div className="bg-black p-1 rounded-full"><img src={story.profile_pic_url} alt={story.username} className="w-full h-full rounded-full object-cover" /></div>
+                  <div className="bg-black p-1 rounded-full relative">
+                    <img src={story.profile_pic_url} alt={story.username} className="w-full h-full rounded-full object-cover" />
+                    {/* Lock Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                      <Lock className="w-6 h-6 text-white drop-shadow-lg" />
+                    </div>
+                  </div>
                 </div><span className="text-xs text-white mt-1 truncate w-16">{maskUsername(story.username)}</span>
               </div>
             );
