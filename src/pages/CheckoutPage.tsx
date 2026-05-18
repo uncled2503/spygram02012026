@@ -136,23 +136,8 @@ const CheckoutPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Google Reviews Card */}
-            <div className="w-full max-w-[92%] mt-6 bg-white border border-gray-100 rounded-[1.25rem] p-4 flex items-center justify-between shadow-md">
-                <div className="flex items-center gap-3">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="w-8 h-8" />
-                    <div className="text-left">
-                        <p className="text-[10px] font-bold text-[#888] uppercase leading-none tracking-tight">GOOGLE REVIEWS:</p>
-                        <p className="text-[12px] font-black text-[#111] mt-0.5">(12,3mil) Avaliações</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-0.5">
-                    {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />)}
-                    <span className="text-[11px] font-bold text-[#888] ml-1">(4,9)</span>
-                </div>
-            </div>
-
             {/* Acquiring Bar */}
-            <div className="w-full max-w-[92%] mt-4 bg-white border border-gray-100 rounded-[1.25rem] p-4 flex items-center gap-4 shadow-md">
+            <div className="w-full max-w-[92%] mt-6 bg-white border border-gray-100 rounded-[1.25rem] p-4 flex items-center gap-4 shadow-md">
                 <div className="bg-[#f8f8f8] p-2 rounded-lg">
                     <ShoppingCart className="w-5 h-5 text-gray-800" />
                 </div>
