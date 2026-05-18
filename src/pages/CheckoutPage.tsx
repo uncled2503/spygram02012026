@@ -40,25 +40,29 @@ const CheckoutPage: React.FC = () => {
   
   const bumpDetails = {
     pro: { 
-      title: 'ADQUIRIR TAMBÉM ACESSO VITALÍCIO AO SPYGRAM PRO ✅ À VISTA POR R$ 9,90', 
+      titlePart1: 'ADQUIRIR TAMBÉM ACESSO VITALÍCIO AO SPYGRAM PRO ✅',
+      priceText: 'À VISTA POR R$ 9,90',
       price: 9.90, 
       img: '/order-bumps/vitalicio.jpg',
       desc: 'Tenha acesso permanente a ferramenta SpyGram PRO!'
     },
     social: { 
-      title: 'ADQUIRIR TAMBÉM ESPIÃO INSTAGRAM + FACEBOOK + WHATSAPP ✅ À VISTA POR R$ 19,90', 
+      titlePart1: 'ADQUIRIR TAMBÉM ESPIÃO INSTAGRAM + FACEBOOK + WHATSAPP',
+      priceText: 'À VISTA POR R$ 19,90',
       price: 19.90, 
       img: '/order-bumps/social.jpg',
       desc: 'Tenha acesso a todas as redes sociais de quem você quiser!'
     },
     recover: { 
-      title: 'ADQUIRIR TAMBÉM RECUPERADOR DE MENSAGENS APAGADAS ✅ À VISTA POR R$ 15,90', 
+      titlePart1: 'ADQUIRIR TAMBÉM RECUPERADOR DE MENSAGENS APAGADAS',
+      priceText: 'À VISTA POR R$ 15,90',
       price: 15.90, 
       img: '/order-bumps/recover.jpg',
       desc: 'Recupere todas as mensagens apagadas do instagram!'
     },
     track: { 
-      title: 'ADQUIRIR TAMBÉM RASTREAMENTO 24 HORAS ✅ À VISTA POR R$ 15,90', 
+      titlePart1: 'ADQUIRIR TAMBÉM RASTREAMENTO 24 HORAS',
+      priceText: 'À VISTA POR R$ 15,90',
       price: 15.90, 
       img: '/order-bumps/track.jpg',
       desc: 'Rastreie a pessoa que quiser usando somente o celular por tempo ilimitado! Saiba cada passo dela!'
@@ -218,14 +222,27 @@ const CheckoutPage: React.FC = () => {
 
             <div className="space-y-4">
                 {(Object.keys(bumps) as Array<keyof typeof bumps>).map((key) => (
-                    <div key={key} className="p-4 border border-gray-200 rounded-2xl flex flex-col items-center bg-[#fcfcfc] text-center">
-                        <img src={bumpDetails[key].img} alt="" className="w-20 h-20 object-contain mb-3" />
-                        <div className="flex-1 flex flex-col items-center">
-                            <input type="checkbox" checked={bumps[key]} onChange={() => handleToggleBump(key)} className="w-5 h-5 rounded border-gray-300 text-green-600 mb-2 cursor-pointer" />
-                            <p className="text-[10px] font-black text-gray-700 uppercase leading-tight mb-2 max-w-[200px]">
-                                {bumpDetails[key].title}
-                            </p>
-                            <p className="text-[11px] font-bold text-[#f15c5c] mb-1 italic">
+                    <div key={key} className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 shadow-sm">
+                        {/* Left: Image */}
+                        <div className="w-20 h-20 flex-shrink-0 flex items-center justify-center">
+                            <img src={bumpDetails[key].img} alt="" className="w-full h-full object-contain" />
+                        </div>
+                        
+                        {/* Right: Content */}
+                        <div className="flex-1 flex flex-col">
+                            <div className="bg-[#f8f8f8] p-3 rounded-xl flex flex-col gap-2">
+                                <input 
+                                    type="checkbox" 
+                                    checked={bumps[key]} 
+                                    onChange={() => handleToggleBump(key)} 
+                                    className="w-6 h-6 rounded border-gray-300 text-green-600 cursor-pointer self-start" 
+                                />
+                                <p className="text-[10px] font-black text-gray-700 uppercase leading-tight">
+                                    {bumpDetails[key].titlePart1}{' '}
+                                    <span className="text-[#22c55e]">{bumpDetails[key].priceText}</span>
+                                </p>
+                            </div>
+                            <p className="text-[11px] font-black text-[#f15c5c] mt-2 leading-tight">
                                 {bumpDetails[key].desc}
                             </p>
                         </div>
