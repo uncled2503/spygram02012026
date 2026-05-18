@@ -52,96 +52,96 @@ const RecoveredDataCard: React.FC<RecoveredDataCardProps> = ({ onUnlockClick }) 
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5, delay: 1.6 }}
-      className="mt-12 mb-12 p-0 text-center w-full max-w-full mx-auto relative overflow-hidden"
+      className="mt-12 mb-12 p-0 text-center w-full max-w-md mx-auto relative overflow-hidden"
     >
-      <div className="relative z-10 px-2">
+      <div className="relative z-10 px-4">
         
-        {/* Título e Ícones */}
+        {/* Título e Ícone de Lixeira */}
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Trash2 className="w-8 h-8 text-red-500" />
-          <h2 className="text-2xl font-extrabold text-white">
+          <Trash2 className="w-10 h-10 text-red-500" />
+          <h2 className="text-3xl font-extrabold text-white">
             <span className="bg-gradient-to-r from-pink-400 via-red-500 to-yellow-400 text-transparent bg-clip-text">
               DADOS APAGADOS RECUPERADOS
             </span>
           </h2>
         </div>
 
-        <p className="text-gray-200 mb-6 max-w-xs mx-auto text-base font-medium">
+        <p className="text-gray-200 mb-8 max-w-sm mx-auto text-lg font-medium">
           **IMPERDÍVEL!** Nosso sistema encontrou arquivos que o alvo pensou ter deletado.
         </p>
         
-        {/* Contadores de Dados Recuperados em Layout de Grade */}
-        <div className="grid grid-cols-2 gap-3 mb-6 max-w-[320px] mx-auto">
+        {/* Contadores de Dados Recuperados (Restaurado tamanho das fontes) */}
+        <div className="grid grid-cols-2 gap-4 mb-8 w-full max-w-[360px] mx-auto">
             
             {/* Card de Fotos */}
-            <div className="p-3 bg-black/50 border border-yellow-700 rounded-xl flex flex-col items-center transition-all duration-300 hover:scale-[1.03] cursor-default">
-                <ImageIcon className="w-8 h-8 text-yellow-400 mb-1 animate-pulse-slow" />
-                <p className="text-4xl font-extrabold text-yellow-300">{photosCount}</p>
-                <p className="text-[10px] uppercase font-bold text-gray-400 mt-1">Fotos</p>
+            <div className="p-4 bg-black/50 border border-yellow-700 rounded-2xl flex flex-col items-center transition-all duration-300 hover:scale-[1.03] cursor-default">
+                <ImageIcon className="w-8 h-8 text-yellow-400 mb-2 animate-pulse-slow" />
+                <p className="text-5xl font-extrabold text-yellow-300 tabular-nums">{photosCount}</p>
+                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">Fotos</p>
             </div>
 
             {/* Card de Conversas */}
-            <div className="p-3 bg-black/50 border border-pink-700 rounded-xl flex flex-col items-center transition-all duration-300 hover:scale-[1.03] cursor-default">
-                <MessageSquare className="w-8 h-8 text-pink-400 mb-1 animate-pulse-slow" />
-                <p className="text-4xl font-extrabold text-pink-300">{chatsCount}</p>
-                <p className="text-[10px] uppercase font-bold text-gray-400 mt-1">Conversas</p>
+            <div className="p-4 bg-black/50 border border-pink-700 rounded-2xl flex flex-col items-center transition-all duration-300 hover:scale-[1.03] cursor-default">
+                <MessageSquare className="w-8 h-8 text-pink-400 mb-2 animate-pulse-slow" />
+                <p className="text-5xl font-extrabold text-pink-300 tabular-nums">{chatsCount}</p>
+                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">Conversas</p>
             </div>
         </div>
 
         {/* Galeria de Fotos Recuperadas */}
         {selectedImages.length > 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 mb-8 bg-black/60 p-6 rounded-xl border border-red-700/50 max-w-[280px] mx-auto shadow-lg shadow-red-500/10">
-            {/* Miniaturas com sobreposição e ANIMAÇÃO DE MOVIMENTO */}
-            <div className="flex -space-x-4 ml-4">
+          <div className="flex flex-col items-center justify-center gap-4 mb-10 bg-black/60 p-6 rounded-2xl border border-red-700/50 w-full max-w-[320px] mx-auto shadow-2xl shadow-red-500/10">
+            {/* Miniaturas com sobreposição */}
+            <div className="flex -space-x-6 ml-4">
               {selectedImages.map((src, index) => (
                 <motion.div 
                   key={index} 
                   animate={{ 
                     y: [0, -8, 0],
-                    rotate: [0, index % 2 === 0 ? 1 : -1, 0]
+                    rotate: [0, index % 2 === 0 ? 2 : -2, 0]
                   }}
                   transition={{ 
-                    duration: 3 + index, 
+                    duration: 4 + index, 
                     repeat: Infinity,
                     ease: "easeInOut",
-                    delay: index * 0.4 
+                    delay: index * 0.5 
                   }}
-                  className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-pink-500 shadow-2xl bg-gray-900"
+                  className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-pink-500 shadow-2xl bg-gray-900"
                   style={{ zIndex: 3 - index }}
                 >
                   <img 
                     src={src} 
                     alt="Recuperada" 
-                    className="w-full h-full object-cover blur-[3px] scale-110" 
+                    className="w-full h-full object-cover blur-[4px] scale-110" 
                     onError={(e) => { e.currentTarget.src = '/perfil.jpg' }}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                    <Lock className="w-8 h-8 text-white/90 drop-shadow-md" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <Lock className="w-10 h-10 text-white/90 drop-shadow-lg" />
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            {/* Informações de Contagem abaixo das fotos */}
-            <div className="text-center leading-tight">
-              <span className="text-4xl font-black text-pink-400 animate-pulse">+{photosCount - 3}</span>
-              <p className="text-[10px] text-gray-300 font-bold uppercase mt-1">Fotos apagadas encontradas</p>
+            {/* Informações de Contagem */}
+            <div className="text-center">
+              <span className="text-5xl font-black text-pink-400 animate-pulse">+{photosCount - 3}</span>
+              <p className="text-xs text-gray-300 font-black uppercase mt-2 tracking-widest">Fotos apagadas encontradas</p>
             </div>
           </div>
         )}
 
-        <p className="text-lg text-red-400 font-bold mb-6 px-4">
+        <p className="text-xl text-red-400 font-black mb-8 px-2 uppercase italic">
           Desbloqueie agora e veja o que ele(a) estava escondendo!
         </p>
 
-        <div className="w-full flex justify-center px-4">
+        <div className="w-full flex justify-center pb-4">
           <ShineButton 
             onClick={onUnlockClick} 
-            className="w-full max-w-[280px] bg-pink-600 focus:ring-pink-500 active:scale-95"
+            className="w-full max-w-[320px] bg-pink-600 focus:ring-pink-500 active:scale-95"
             shineColorClasses="bg-pink-600"
           >
-            <span className="text-base font-extrabold leading-tight">
-              VER FOTOS E CONVERSAS<br/>APAGADAS
+            <span className="text-lg font-black leading-tight uppercase tracking-tighter">
+              VER FOTOS E CONVERSAS APAGADAS
             </span>
           </ShineButton>
         </div>
