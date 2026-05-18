@@ -157,9 +157,9 @@ const CheckoutPage: React.FC = () => {
           {/* Resumo */}
           <div className="lg:col-span-4">
             <div className="bg-[#111] border border-gray-800 rounded-xl p-6 sticky top-6">
-              <div className="w-full aspect-square bg-[#0a0a0a] rounded-lg flex items-center justify-center mb-6 border border-gray-800">
-                <img src="/logoapp.png" alt="SpyGram" className="w-1/2 object-contain" />
-              </div>
+              {/* Contêiner removido conforme solicitado */}
+              <img src="/logoapp.png" alt="SpyGram" className="w-40 h-40 mx-auto mb-6 object-contain" />
+              
               <h2 className="text-lg font-black text-white uppercase mb-6 border-b border-gray-800 pb-4">Resumo</h2>
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex justify-between"><span>Plano Completo</span><span>R$ {basePrice.toFixed(2)}</span></div>
