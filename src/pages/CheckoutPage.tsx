@@ -302,7 +302,7 @@ const CheckoutPage: React.FC = () => {
         {/* FOOTER WEB */}
         <footer className="bg-white border-t border-gray-100 py-12">
             <div className="max-w-6xl mx-auto px-4">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <p className="text-[11px] font-bold text-gray-400 uppercase">E-MAIL DE SUPORTE: contato@spygram.com.br</p>
                     <div className="flex items-center gap-8">
                         <div className="flex flex-col items-center text-[10px] text-gray-400 font-bold uppercase">
@@ -313,12 +313,6 @@ const CheckoutPage: React.FC = () => {
                             <ShieldCheck size={14} /> COMPRA 100% SEGURA
                         </div>
                     </div>
-                </div>
-                <div className="text-center text-[10px] text-gray-400 font-medium space-y-2 uppercase tracking-tight">
-                    <p>Esta compra será processada por PerfectPay © 2026 - Todos os direitos reservados.</p>
-                    <p>* * Taxa de 2,99% a.m.</p>
-                    <p>Ao continuar nesta compra, você concorda com os <span className="underline cursor-pointer">Termos de Compra</span> e <span className="underline cursor-pointer">Termos de Privacidade</span>.</p>
-                    <p className="mt-4">Ref: PPA22ZU8 | SN: 6A0B849508A08N</p>
                 </div>
             </div>
         </footer>
@@ -424,7 +418,6 @@ const CheckoutPage: React.FC = () => {
         <footer className="mt-20 border-t border-gray-200 pt-10 px-6 flex flex-col items-center pb-10">
           <p className="text-xs font-bold text-gray-500 mb-8">E-MAIL DE SUPORTE: contato@spygram.com.br</p>
           <div className="bg-[#78cc6d] text-white py-2 px-6 rounded-sm text-[11px] font-black uppercase flex items-center gap-2 shadow-sm mb-10"><ShieldCheck size={20} /> COMPRA 100% SEGURA</div>
-          <p className="text-[10px] text-gray-400 font-medium text-center uppercase tracking-tight">© 2026 SpyGram System - Todos os direitos reservados.</p>
         </footer>
       </div>
     </div>
