@@ -70,7 +70,7 @@ const MainAppContent: React.FC = () => {
     try {
       const location = await getUserLocation();
 
-      // Verificação segura de IP (não trava se a coluna não existir)
+      // Verificação segura de IP
       const { data: existingLead } = await supabase
         .from('leads')
         .select('id')
@@ -87,8 +87,9 @@ const MainAppContent: React.FC = () => {
       logout(); 
       sessionStorage.removeItem('invasionEndTime');
       sessionStorage.removeItem('invasionData');
-      // REMOVIDO: sessionStorage.removeItem('current_lead_id'); 
-      // Deixamos o trackLead decidir se cria um novo ou atualiza o existente
+      
+      // Limpa o ID do lead para que uma nova pesquisa crie um novo registro
+      sessionStorage.removeItem('current_lead_id');
 
       const [fetchResult] = await Promise.all([
         fetchProfileData(searchQuery.trim()),

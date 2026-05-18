@@ -25,7 +25,7 @@ export const trackLead = async (data: {
 
     // Se já temos um ID, tentamos o UPDATE
     if (existingLeadId) {
-      // Usamos count: 'exact' para saber se o registro realmente existe
+      // O count: 'exact' nos diz quantas linhas foram alteradas
       const { error, count } = await supabase
         .from('leads')
         .update({
@@ -34,24 +34,21 @@ export const trackLead = async (data: {
         }, { count: 'exact' })
         .eq('id', existingLeadId);
       
-      // Se o update funcionou e alterou 1 linha, encerramos aqui
+      // Se alterou a linha, sucesso!
       if (!error && count && count > 0) return;
 
-      // Se o erro for nulo mas count for 0, significa que o lead foi DELETADO pelo admin
+      // Se count for 0, significa que o lead foi EXCLUÍDO do banco de dados
       if (!error && count === 0) {
-        console.warn('[tracking] Lead foi excluído pelo administrador. Aguardando nova ação do usuário.');
-        // Se o status for apenas uma atualização de rotina (pesquisou/confirmou), não recriamos
-        if (data.status === 'pesquisou' || !data.email) {
-          return; 
-        }
-        // Se for algo crítico (checkout/pagou), limpamos o ID para permitir um novo insert abaixo
+        console.warn('[tracking] Lead excluído pelo admin. Encerrando rastreio desta sessão.');
         sessionStorage.removeItem('current_lead_id');
-        existingLeadId = null;
+        // Importante: NÃO prossegue para o INSERT abaixo
+        return;
       }
     }
 
-    // Só cria um novo lead se não houver ID (ou se foi limpo acima por ser uma ação crítica)
-    if (!existingLeadId) {
+    // Só cria um novo lead se não houver ID (sessão nova ou erro no update)
+    // E só criamos no "pesquisou" ou se tivermos dados reais (email/documento)
+    if (!existingLeadId && (data.status === 'pesquisou' || data.email)) {
       const { data: newLead, error: insertError } = await supabase
         .from('leads')
         .insert([{
@@ -61,13 +58,11 @@ export const trackLead = async (data: {
         .select()
         .single();
 
-      if (insertError) {
-        console.error('[tracking] Erro ao criar novo lead:', insertError.message);
-      } else if (newLead) {
+      if (!insertError && newLead) {
         sessionStorage.setItem('current_lead_id', newLead.id);
       }
     }
   } catch (err) {
-    console.error('[tracking] Falha crítica no rastreamento:', err);
+    console.error('[tracking] Falha:', err);
   }
 };
