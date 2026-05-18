@@ -177,8 +177,8 @@ const App: React.FC = () => {
           <Route path="/instagram" element={<InvasionSimulationPage />} />
           <Route path="/invasion-concluded" element={<BackgroundLayout><InvasionConcludedPage /></BackgroundLayout>} />
           
-          <Route path="/servers" element={<ProtectedRoute><ServersPage /></ProtectedRoute>} />
-          <Route path="/credits" element={<ProtectedRoute><CreditsPage /></ProtectedRoute>} />
+          <Route path="/servers" element={<ProtectedRoute><BackgroundLayout><ServersPage /></BackgroundLayout></ProtectedRoute>} />
+          <Route path="/credits" element={<ProtectedRoute><BackgroundLayout><CreditsPage /></BackgroundLayout></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
           <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
         </Routes>
