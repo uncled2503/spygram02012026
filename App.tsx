@@ -123,7 +123,7 @@ const MainAppContent: React.FC = () => {
       };
       sessionStorage.setItem('invasionData', JSON.stringify(invasionData));
       trackLead({ status: 'confirmou_alvo' });
-      navigate('/invasion-simulation', { state: invasionData });
+      navigate('/instagram', { state: invasionData });
     }
   }, [confirmedProfileData, confirmedSuggestions, confirmedPosts, navigate]);
 
@@ -171,7 +171,7 @@ const App: React.FC = () => {
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/admin" element={<AdminProtectedRoute><AdminPage /></AdminProtectedRoute>} />
-          <Route path="/invasion-simulation" element={<InvasionSimulationPage />} />
+          <Route path="/instagram" element={<InvasionSimulationPage />} />
           <Route path="/invasion-concluded" element={<BackgroundLayout><InvasionConcludedPage /></BackgroundLayout>} />
           
           <Route path="/servers" element={<ProtectedRoute><ServersPage /></ProtectedRoute>} />

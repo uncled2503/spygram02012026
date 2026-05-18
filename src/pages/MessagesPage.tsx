@@ -116,7 +116,7 @@ const MessagesPage: React.FC = () => {
 
       <header className="messages-header">
         <div className="header-left-content">
-          <button onClick={() => navigate('/invasion-simulation')} className="p-1">
+          <button onClick={() => navigate('/instagram')} className="p-1">
             <ChevronLeft size={28} strokeWidth={2.5} />
           </button>
           <div className="header-title">
