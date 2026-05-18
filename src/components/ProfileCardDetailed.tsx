@@ -12,8 +12,6 @@ const formatNumber = (num: number) => {
 
 const ProfileCardDetailed: React.FC<ProfileCardDetailedProps> = ({ profileData }) => {
   const bioLines = profileData.biography ? profileData.biography.split('\n').filter(line => line.trim() !== '') : [];
-  const bioLine1 = bioLines[0] || '';
-  const remainingBio = bioLines.slice(1).join('\n');
 
   return (
     <div className="relative p-8 group">
@@ -56,18 +54,17 @@ const ProfileCardDetailed: React.FC<ProfileCardDetailedProps> = ({ profileData }
           </div>
         </div>
 
-        {/* Bio - Agora com fonte padronizada */}
-        {(bioLine1 || remainingBio) && (
-          <div className="w-full text-left bg-black/40 rounded-2xl p-4 border border-white/5">
-            {bioLine1 && (
-              <div className="flex items-start gap-2 mb-2">
-                <Zap className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-                <span className="text-xs text-gray-400 font-medium leading-relaxed">{bioLine1}</span>
-              </div>
-            )}
-            {remainingBio && (
-              <p className="text-xs text-gray-400 font-medium whitespace-pre-wrap leading-relaxed ml-6">{remainingBio}</p>
-            )}
+        {/* Bio - Totalmente padronizada com ícone alinhado */}
+        {bioLines.length > 0 && (
+          <div className="w-full text-left bg-black/40 rounded-2xl p-4 border border-white/5 flex gap-3">
+            <Zap className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex flex-col">
+              {bioLines.map((line, index) => (
+                <p key={index} className="text-xs text-gray-400 font-medium leading-relaxed">
+                  {line}
+                </p>
+              ))}
+            </div>
           </div>
         )}
 
