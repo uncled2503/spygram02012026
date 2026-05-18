@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Image, MessageSquare, Trash2 } from 'lucide-react';
+import { Image as ImageIcon, MessageSquare, Trash2, Lock } from 'lucide-react';
 import ShineButton from './ui/ShineButton';
 
 interface RecoveredDataCardProps {
@@ -12,15 +12,39 @@ const getRandomNumber = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+// Lista com os nomes das imagens upadas para o projeto
+const ALL_RECOVERED_IMAGES = [
+  '/89-melhores-nudes-das-mais-gostosas-da-web-63.jpg',
+  '/nuds-de-mulheres-gostosas-1.png',
+  '/images (2).jpg',
+  '/images.jpg',
+  '/Novinha-de-19-aninhos-peladinha-no-quarto-3.jpg',
+  '/nudes-de-mulher-08.jpeg',
+  '/246925.jpg',
+  '/novinha-peituda-tira-selfies-pelada-4.jpg',
+  '/79618507_010_0527.jpg',
+  '/images (1).jpg',
+  '/45-Nudes-com-lindas-mulheres-amadoras-gostosas-peladas-002.jpg',
+  '/images (3).jpg',
+  '/mulher-brasileira-pelada-no-quarto-tirando-fotos-exibindo-xereca_fad7ebc170260628f78c2b1faa6c6de6.jpg'
+];
+
 const RecoveredDataCard: React.FC<RecoveredDataCardProps> = ({ onUnlockClick }) => {
   const [photosCount, setPhotosCount] = useState(0);
   const [chatsCount, setChatsCount] = useState(0);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   useEffect(() => {
     // Fotos: 21 a 37
-    setPhotosCount(getRandomNumber(21, 37));
+    const generatedPhotosCount = getRandomNumber(21, 37);
+    setPhotosCount(generatedPhotosCount);
+    
     // Conversas: 5 a 15
     setChatsCount(getRandomNumber(5, 15));
+
+    // Selecionar 3 imagens aleatórias do array
+    const shuffled = [...ALL_RECOVERED_IMAGES].sort(() => 0.5 - Math.random());
+    setSelectedImages(shuffled.slice(0, 3));
   }, []);
 
   return (
@@ -46,12 +70,12 @@ const RecoveredDataCard: React.FC<RecoveredDataCardProps> = ({ onUnlockClick }) 
           **IMPERDÍVEL!** Nosso sistema de recuperação encontrou arquivos que o alvo pensou ter deletado para sempre.
         </p>
         
-        {/* Contadores de Dados Recuperados em Layout de Grade (Mantendo o destaque visual) */}
-        <div className="grid grid-cols-2 gap-4 mb-8 max-w-sm mx-auto">
+        {/* Contadores de Dados Recuperados em Layout de Grade */}
+        <div className="grid grid-cols-2 gap-4 mb-6 max-w-sm mx-auto">
             
             {/* Card de Fotos */}
             <div className="p-4 bg-black/50 border border-yellow-700 rounded-xl flex flex-col items-center transition-all duration-300 hover:scale-[1.03] cursor-default">
-                <Image className="w-12 h-12 text-yellow-400 mb-2 animate-pulse-slow" />
+                <ImageIcon className="w-12 h-12 text-yellow-400 mb-2 animate-pulse-slow" />
                 <p className="text-6xl font-extrabold text-yellow-300">{photosCount}</p>
                 <p className="text-sm text-gray-400 mt-1">Fotos Recuperadas</p>
             </div>
@@ -63,6 +87,34 @@ const RecoveredDataCard: React.FC<RecoveredDataCardProps> = ({ onUnlockClick }) 
                 <p className="text-sm text-gray-400 mt-1">Conversas Secretas</p>
             </div>
         </div>
+
+        {/* Mini Galeria de Fotos Recuperadas */}
+        {selectedImages.length > 0 && (
+          <div className="flex items-center justify-center gap-4 mb-8 bg-black/60 p-4 rounded-xl border border-red-700/50 max-w-sm mx-auto shadow-lg shadow-red-500/10">
+            <div className="flex -space-x-4">
+              {selectedImages.map((src, index) => (
+                <div 
+                  key={index} 
+                  className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-pink-500 shadow-xl"
+                  style={{ zIndex: 3 - index }}
+                >
+                  <img 
+                    src={src} 
+                    alt="Recuperada" 
+                    className="w-full h-full object-cover blur-md scale-110" 
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <Lock className="w-5 h-5 text-white/80" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-left leading-tight">
+              <span className="text-2xl font-black text-pink-400 animate-pulse">+{photosCount}</span>
+              <p className="text-xs text-gray-300 font-bold uppercase mt-0.5">Fotos apagadas<br/>encontradas</p>
+            </div>
+          </div>
+        )}
 
         <p className="text-xl text-red-400 font-bold mb-6">
           Desbloqueie agora e veja o que ele(a) estava escondendo!
