@@ -87,7 +87,8 @@ const MainAppContent: React.FC = () => {
       logout(); 
       sessionStorage.removeItem('invasionEndTime');
       sessionStorage.removeItem('invasionData');
-      sessionStorage.removeItem('current_lead_id'); // Garante um novo lead limpo
+      // REMOVIDO: sessionStorage.removeItem('current_lead_id'); 
+      // Deixamos o trackLead decidir se cria um novo ou atualiza o existente
 
       const [fetchResult] = await Promise.all([
         fetchProfileData(searchQuery.trim()),
