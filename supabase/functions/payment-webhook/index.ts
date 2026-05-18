@@ -7,7 +7,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Tratamento de CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -20,38 +19,41 @@ serve(async (req) => {
     const payload = await req.json()
     console.log("[payment-webhook] Recebido:", payload);
 
-    // Extrai os campos conforme a documentação (idTransaction ou externalReference)
-    const transactionId = payload.idTransaction || payload.externalReference;
-    const status = payload.status;
+    const transactionId = String(payload.idTransaction || payload.externalReference);
+    const status = payload.status; // Esperado 'paid', 'approved', etc.
 
     if (!transactionId || !status) {
-      console.error("[payment-webhook] Payload inválido: faltando ID ou Status");
       return new Response(JSON.stringify(400), { status: 400 });
     }
 
-    // Registra ou atualiza o status no banco de dados
-    const { error } = await supabase
+    // 1. Atualiza a tabela de pagamentos
+    const { data: paymentData } = await supabase
       .from('payments')
-      .upsert({ 
-        transaction_id: transactionId, 
+      .update({ 
         status: status,
         payload: payload,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'transaction_id' });
+      })
+      .eq('transaction_id', transactionId)
+      .select('lead_id')
+      .single();
 
-    if (error) {
-      console.error("[payment-webhook] Erro ao salvar no banco:", error.message);
-      // Mesmo com erro no banco, a doc sugere responder 200 se o payload foi recebido
+    // 2. Se o pagamento for confirmado, atualiza o status do LEAD
+    if (paymentData?.lead_id && (status === 'paid' || status === 'approved' || status === 'success')) {
+      console.log(`[payment-webhook] Confirmando lead: ${paymentData.lead_id}`);
+      await supabase
+        .from('leads')
+        .update({ status: 'pagou' })
+        .eq('id', paymentData.lead_id);
     }
 
-    // Conforme a documentação: retorne imediatamente HTTP 200 com json_encode(200)
     return new Response(JSON.stringify(200), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
   } catch (error) {
-    console.error("[payment-webhook] Falha crítica:", error.message)
+    console.error("[payment-webhook] Falha:", error.message)
     return new Response(JSON.stringify(500), { status: 500 })
   }
 })
