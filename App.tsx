@@ -19,7 +19,7 @@ import InvasionConcludedPage from '@/src/pages/InvasionConcludedPage';
 import ProfileConfirmationCard from '@/src/components/ProfileConfirmationCard';
 import { MIN_LOADING_DURATION } from './constants';
 import { fetchProfileData } from './src/services/profileService';
-import { useAuth } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext'; // Importação do AuthProvider adicionada
 import ProtectedRoute from './src/components/ProtectedRoute';
 import AdminProtectedRoute from './src/components/AdminProtectedRoute';
 import { ProfileData, SuggestedProfile, FeedPost } from './types';
@@ -111,7 +111,7 @@ const MainAppContent: React.FC = () => {
 
   if (confirmedProfileData) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative z-10">
         <ProfileConfirmationCard
           profileData={confirmedProfileData}
           onConfirm={handleConfirmInvasion}
@@ -122,7 +122,7 @@ const MainAppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="min-h-screen bg-black">
       <ProgressBar progress={progressBarProgress} isVisible={isLoading} />
       <div className="relative z-20 text-white flex flex-col items-center px-4 pt-12 pb-8 w-full"> 
         <header className="text-center mb-8 w-full max-w-xl">
