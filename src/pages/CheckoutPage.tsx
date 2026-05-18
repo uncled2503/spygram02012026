@@ -5,6 +5,7 @@ import SalesNotification from '../components/SalesNotification';
 import PixPaymentDisplay from '../components/PixPaymentDisplay';
 import { supabase } from '../integrations/supabase/client';
 import toast from 'react-hot-toast';
+import { trackLead } from '../services/trackingService';
 
 const CHECKOUT_URL = 'https://go.perfectpay.com.br/PPU38CPUD1S';
 
@@ -55,6 +56,11 @@ const CheckoutPage: React.FC = () => {
     recover: false,
     track: false
   });
+
+  // Track initial checkout stage
+  useEffect(() => {
+    trackLead({ status: 'checkout' });
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -125,6 +131,16 @@ const CheckoutPage: React.FC = () => {
 
     setIsProcessing(true);
     const toastId = toast.loading("Gerando seu pagamento PIX...");
+
+    // Sincroniza dados finais do lead antes de gerar pagamento
+    await trackLead({
+      email: formData.email,
+      phone: formData.whatsapp,
+      full_name: formData.nome,
+      document: formData.documento,
+      status: 'gerou_pix',
+      amount: total
+    });
 
     try {
         const { data, error } = await supabase.functions.invoke('royal-banking-payment', {

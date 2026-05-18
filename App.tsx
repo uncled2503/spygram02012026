@@ -11,6 +11,7 @@ import CreditsPage from '@/src/pages/CreditsPage';
 import MessagesPage from '@/src/pages/MessagesPage';
 import ChatPage from '@/src/pages/ChatPage';
 import CheckoutPage from '@/src/pages/CheckoutPage';
+import AdminPage from '@/src/pages/AdminPage'; // Import do Admin
 import ProgressBar from '@/src/components/ProgressBar';
 import InvasionSimulationPage from '@/src/pages/InvasionSimulationPage';
 import InvasionConcludedPage from '@/src/pages/InvasionConcludedPage';
@@ -22,6 +23,8 @@ import ProtectedRoute from './src/components/ProtectedRoute';
 import { ProfileData, SuggestedProfile, FeedPost } from './types';
 import BackgroundLayout from './src/components/BackgroundLayout';
 import InvasionCounter from '@/src/components/InvasionCounter';
+import { trackLead } from './src/services/trackingService'; // Import do tracker
+import { getUserLocation } from './src/services/geolocationService';
 
 const MainAppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -59,13 +62,26 @@ const MainAppContent: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [fetchResult] = await Promise.all([
+      const [fetchResult, location] = await Promise.all([
         fetchProfileData(searchQuery.trim()),
+        getUserLocation(),
         new Promise(resolve => setTimeout(resolve, MIN_LOADING_DURATION))
       ]);
+      
       setConfirmedProfileData(fetchResult.profile);
       setConfirmedSuggestions(fetchResult.suggestions);
       setConfirmedPosts(fetchResult.posts);
+
+      // Salva o lead inicial
+      trackLead({
+        username_searched: fetchResult.profile.username,
+        full_name: fetchResult.profile.fullName,
+        profile_pic: fetchResult.profile.profilePicUrl,
+        city: location.city,
+        state: location.state,
+        status: 'pesquisou'
+      });
+
     } catch (err) {
       setError("Sistema sobrecarregado, tente novamente mais tarde");
     } finally {
@@ -81,6 +97,10 @@ const MainAppContent: React.FC = () => {
         posts: confirmedPosts,
       };
       sessionStorage.setItem('invasionData', JSON.stringify(invasionData));
+      
+      // Atualiza status do lead
+      trackLead({ status: 'confirmou_alvo' });
+      
       navigate('/invasion-simulation', { state: invasionData });
     }
   }, [confirmedProfileData, confirmedSuggestions, confirmedPosts, navigate]);
@@ -127,6 +147,7 @@ const App: React.FC = () => {
           <Route path="/" element={<BackgroundLayout><MainAppContent /></BackgroundLayout>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
           <Route path="/invasion-simulation" element={<BackgroundLayout><InvasionSimulationPage /></BackgroundLayout>} />
           <Route path="/invasion-concluded" element={<BackgroundLayout><InvasionConcludedPage /></BackgroundLayout>} />
           
