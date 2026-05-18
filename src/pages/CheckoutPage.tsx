@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Lock, CreditCard, QrCode, Check, Clock, Star, Mail, ShieldCheck, ChevronRight, Smartphone, Banknote } from 'lucide-react';
+import { ChevronLeft, Lock, CreditCard, QrCode, Check, Clock, Star, Mail, ShieldCheck, ChevronRight, ShoppingCart, Banknote, LayoutList } from 'lucide-react';
 import SalesNotification from '../components/SalesNotification';
 
 const CHECKOUT_URL = 'https://go.perfectpay.com.br/PPU38CPUD1S';
@@ -8,7 +8,7 @@ const CHECKOUT_URL = 'https://go.perfectpay.com.br/PPU38CPUD1S';
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<'cartao' | 'pix' | 'boleto' | 'picpay'>('pix');
-  const [timeLeft, setTimeLeft] = useState(289); // 04:49 inicial conforme imagem
+  const [timeLeft, setTimeLeft] = useState(252); // 04:12 inicial conforme imagem
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -41,25 +41,25 @@ const CheckoutPage: React.FC = () => {
   
   const bumpDetails = {
     pro: { 
-      title: 'ADQUIRIR TAMBÉM ACESSO VITALÍCIO AO SPYGRAM PRO', 
+      title: 'ADQUIRIR TAMBÉM ACESSO VITALÍCIO AO SPYGRAM PRO ✅ À VISTA POR R$ 9,90', 
       price: 9.90, 
       img: '/order-bumps/vitalicio.jpg',
       desc: 'Tenha acesso permanente a ferramenta SpyGram PRO!'
     },
     social: { 
-      title: 'ADQUIRIR TAMBÉM ESPIÃO INSTAGRAM + FACEBOOK + WHATSAPP', 
+      title: 'ADQUIRIR TAMBÉM ESPIÃO INSTAGRAM + FACEBOOK + WHATSAPP ✅ À VISTA POR R$ 19,90', 
       price: 19.90, 
       img: '/order-bumps/social.jpg',
       desc: 'Tenha acesso a todas as redes sociais de quem você quiser!'
     },
     recover: { 
-      title: 'ADQUIRIR TAMBÉM RECUPERADOR DE MENSAGENS APAGADAS', 
+      title: 'ADQUIRIR TAMBÉM RECUPERADOR DE MENSAGENS APAGADAS ✅ À VISTA POR R$ 15,90', 
       price: 15.90, 
       img: '/order-bumps/recover.jpg',
-      desc: 'Recupere todas as mensagens apagadas do Instagram!'
+      desc: 'Recupere todas as mensagens apagadas do instagram!'
     },
     track: { 
-      title: 'ADQUIRIR TAMBÉM RASTREAMENTO 24 HORAS', 
+      title: 'ADQUIRIR TAMBÉM RASTREAMENTO 24 HORAS ✅ À VISTA POR R$ 15,90', 
       price: 15.90, 
       img: '/order-bumps/track.jpg',
       desc: 'Rastreie a pessoa que quiser usando somente o celular por tempo ilimitado! Saiba cada passo dela!'
@@ -74,6 +74,11 @@ const CheckoutPage: React.FC = () => {
 
   const handleToggleBump = (key: keyof typeof bumps) => {
     setBumps(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleFinalize = () => {
+    sessionStorage.setItem('hasPurchased', 'true');
+    window.location.href = CHECKOUT_URL;
   };
 
   const maskPhone = (value: string) => value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").substring(0, 15);
@@ -96,231 +101,235 @@ const CheckoutPage: React.FC = () => {
       <SalesNotification />
       
       {/* Top Countdown Banner */}
-      <div className="w-full bg-[#f15c5c] text-white py-2.5 text-center text-[13px] font-bold uppercase flex items-center justify-center gap-2 px-4">
-        <span>ESSA PROMOÇÃO SE ENCERRA AO ZERAR O CRONÔMETRO!</span>
-        <div className="flex items-center gap-1.5 ml-2">
+      <div className="w-full bg-[#f15c5c] text-white py-3 text-center text-[12px] font-bold uppercase flex flex-col items-center justify-center gap-1 px-4 opacity-90">
+        <span className="text-base font-mono">{formatTimer(timeLeft)}</span>
+        <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
-            <span className="font-mono text-base">{formatTimer(timeLeft)}</span>
+            <span>ESSA PROMOÇÃO SE ENCERRA AO ZERAR O CRONÔMETRO!</span>
         </div>
       </div>
 
       {/* Hero Section */}
-      <div className="w-full bg-[#f4f4f4] pt-8 pb-4 px-4 flex flex-col items-center">
-        <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20">
-            <div className="relative">
-                <img src="/banner-topo.png" alt="People using SpyGram" className="w-full max-w-[500px] h-auto" />
+      <div className="w-full bg-white pt-8 pb-4 px-4 flex flex-col items-center">
+        <div className="w-full max-w-lg flex flex-col items-center">
+            <div className="relative mb-6">
+                <img src="/banner-topo.png" alt="Hero" className="w-full h-auto" />
             </div>
-            <div className="flex flex-col items-center md:items-end">
-                <img src="/spygram_transparentebranco.png" alt="SpyGram Logo" className="h-20 mb-4 brightness-0" />
-            </div>
-        </div>
-        
-        <div className="text-center mt-6">
-            <h1 className="text-2xl md:text-3xl font-black text-[#111] mb-2">+12,3mil pessoas utilizam e aprovam o SpyGram®.</h1>
-            <p className="text-[#666] text-sm md:text-base max-w-2xl font-medium">
-                Este aplicativo foi testado e aprovado por profissionais, contando com o selo de confiança 'Google Reviews'.
-            </p>
-        </div>
-
-        {/* Google Reviews Seal */}
-        <div className="w-full max-w-3xl mt-8 bg-white border border-gray-200 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center justify-between shadow-sm">
-            <div className="flex items-center gap-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_\"G\"_logo.svg" alt="Google" className="w-10 h-10" />
-                <div className="text-left">
-                    <p className="text-lg font-black text-[#444] uppercase leading-tight">GOOGLE REVIEWS:</p>
-                    <p className="text-lg font-black text-[#444]">(12,3mil) Avaliações</p>
-                </div>
-            </div>
-            <div className="flex flex-col items-center md:items-end mt-4 md:mt-0">
-                <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => <Star key={i} className={`w-6 h-6 ${i === 4 ? 'text-gray-300' : 'text-yellow-400 fill-yellow-400'}`} />)}
-                    <span className="text-xl font-bold text-[#444] ml-2">(4,9)</span>
-                </div>
-            </div>
-        </div>
-
-        {/* Acquiring Bar */}
-        <div className="w-full max-w-3xl mt-4 bg-white border border-gray-100 rounded-lg py-2.5 px-4 flex items-center gap-3 text-[#666] text-[11px] font-bold uppercase shadow-sm">
-            <div className="p-1.5 bg-gray-100 rounded">
-                <Smartphone className="w-4 h-4" />
-            </div>
-            <span>VOCÊ ESTÁ ADQUIRINDO: Relatório SpyGram Completo</span>
-        </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-4 mt-8 flex flex-col lg:flex-row gap-8">
-        
-        {/* Main Column */}
-        <div className="flex-1 space-y-8">
-          
-          {/* Step 1: Personal Data */}
-          <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-            <div className="bg-[#f4f4f4] px-6 py-3 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold text-sm">1</div>
-                <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest">DADOS PESSOAIS</h2>
-            </div>
-            <div className="p-6 space-y-4">
-                <div>
-                    <label className="text-[11px] font-bold text-gray-500 mb-1.5 block uppercase">Nome completo</label>
-                    <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Digite seu nome completo" className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
-                </div>
-                <div>
-                    <label className="text-[11px] font-bold text-gray-500 mb-1.5 block uppercase">E-mail</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="E-mail" className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
-                </div>
-                <div>
-                    <label className="text-[11px] font-bold text-gray-500 mb-1.5 block uppercase">Telefone</label>
-                    <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="Telefone" className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
-                </div>
-            </div>
-          </section>
-
-          {/* Step 2: Payment */}
-          <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-            <div className="bg-[#f4f4f4] px-6 py-3 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold text-sm">2</div>
-                <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest">PAGAMENTO</h2>
-            </div>
-            <div className="p-6">
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                    <button onClick={() => setPaymentMethod('cartao')} className={`flex items-center justify-center gap-2 p-3.5 rounded-lg border-2 text-[11px] font-bold uppercase transition-all ${paymentMethod === 'cartao' ? 'bg-white border-purple-500 text-purple-600' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
-                        <CreditCard className="w-4 h-4" /> Cartão de Crédito
-                    </button>
-                    <button onClick={() => setPaymentMethod('boleto')} className={`flex items-center justify-center gap-2 p-3.5 rounded-lg border-2 text-[11px] font-bold uppercase transition-all ${paymentMethod === 'boleto' ? 'bg-white border-purple-500 text-purple-600' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
-                        <Banknote className="w-4 h-4" /> Boleto
-                    </button>
-                    <button onClick={() => setPaymentMethod('pix')} className={`relative flex items-center justify-center gap-2 p-3.5 rounded-lg border-2 text-[11px] font-bold uppercase transition-all ${paymentMethod === 'pix' ? 'bg-white border-purple-500 text-purple-600' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
-                        <QrCode className="w-4 h-4" /> Pix
-                        {paymentMethod === 'pix' && <div className="absolute -top-1.5 -right-1.5 bg-green-500 text-white rounded-full p-0.5"><Check className="w-3 h-3" /></div>}
-                    </button>
-                    <button onClick={() => setPaymentMethod('picpay')} className={`flex items-center justify-center gap-2 p-3.5 rounded-lg border-2 text-[11px] font-bold uppercase transition-all ${paymentMethod === 'picpay' ? 'bg-white border-purple-500 text-purple-600' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
-                        PicPay
-                    </button>
-                </div>
-
-                {paymentMethod === 'pix' && (
-                    <div className="space-y-4 border-t border-gray-100 pt-6">
-                        <div className="text-[11px] text-gray-500 font-medium space-y-4">
-                            <p>01. Pagamento em segundos, sem complicações</p>
-                            <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
-                            <p>03. O PIX foi desenvolvido pelo Banco Central para facilitar suas compras e é 100% seguro.</p>
-                        </div>
-                        <div className="mt-6">
-                            <label className="text-[11px] font-bold text-gray-500 mb-1.5 block uppercase">CPF ou CNPJ</label>
-                            <input type="tel" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
-                        </div>
-                    </div>
-                )}
-            </div>
-          </section>
-
-          {/* Step 3: Order Bumps */}
-          <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-            <div className="bg-[#f4f4f4] px-6 py-3 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold text-sm">3</div>
-                <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest">COMPRE JUNTO</h2>
-            </div>
-            <div className="p-6">
-                <div className="bg-[#56bc56] text-white px-3 py-1 rounded-sm text-[10px] font-bold uppercase w-fit mb-4">APROVEITE!</div>
-                <p className="text-[13px] font-medium text-[#444] mb-6">
-                    <span className="font-bold text-[#111]">70% das pessoas</span> que compraram Relatório SpyGram Completo também se interessaram por:
+            
+            <div className="text-center">
+                <h1 className="text-lg font-black text-[#111] mb-2">+12,3mil pessoas utilizam e aprovam o SpyGram®.</h1>
+                <p className="text-[#666] text-xs font-medium max-w-xs mx-auto leading-tight">
+                    Este aplicativo foi testado e aprovado por profissionais, contando com o selo de confiança 'Google Reviews'.
                 </p>
+            </div>
 
-                <div className="space-y-4">
-                    {(Object.keys(bumps) as Array<keyof typeof bumps>).map((key) => (
-                        <div key={key} className="p-5 border border-gray-200 rounded-lg flex items-start gap-4">
-                            <img src={bumpDetails[key].img} alt="" className="w-16 h-16 object-contain rounded border border-gray-100" />
-                            <div className="flex-1">
-                                <p className="text-[10px] font-black text-gray-600 uppercase leading-tight mb-1">{bumpDetails[key].title}</p>
-                                <p className="text-xs font-black text-green-600 uppercase">✅ À VISTA POR R$ {bumpDetails[key].price.toFixed(2).replace('.', ',')}</p>
-                                <p className="text-[11px] font-black text-[#f15c5c] mt-2 italic">{bumpDetails[key].desc}</p>
-                            </div>
-                            <input type="checkbox" checked={bumps[key]} onChange={() => handleToggleBump(key)} className="w-5 h-5 rounded border-gray-300 text-purple-600 mt-1 cursor-pointer" />
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-10 flex flex-col items-center">
-                    <button onClick={handleFinalize} className="w-full bg-[#56bc56] hover:bg-[#4aa34a] text-white py-4 px-8 rounded-lg font-black text-base uppercase flex items-center justify-center gap-3 shadow-lg transition-all active:scale-[0.98]">
-                        Finalizar Compra <ChevronRight className="w-5 h-5" />
-                    </button>
-                    <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-[#56bc56] uppercase">
-                        <ShieldCheck className="w-4 h-4" />
-                        Pagamento 100% seguro, processado com criptografia 128bits.
+            {/* Google Reviews Seal */}
+            <div className="w-full max-w-md mt-6 bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_\"G\"_logo.svg" alt="Google" className="w-8 h-8" />
+                    <div className="text-left">
+                        <p className="text-[11px] font-black text-[#444] uppercase leading-none">GOOGLE REVIEWS:</p>
+                        <p className="text-[11px] font-black text-[#444]">(12,3mil) Avaliações</p>
                     </div>
-                    <p className="mt-4 text-[10px] text-gray-400 font-medium text-center">
-                        Produto digital, os dados para acesso serão enviados por email.
-                    </p>
+                </div>
+                <div className="flex items-center gap-0.5">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                    <span className="text-xs font-bold text-[#444] ml-1">(4,9)</span>
                 </div>
             </div>
-          </section>
+
+            {/* Acquiring Bar */}
+            <div className="w-full max-w-md mt-3 bg-white border border-gray-100 rounded-xl p-3 flex items-center gap-3 text-[#666] text-[10px] font-bold uppercase shadow-sm">
+                <ShoppingCart className="w-5 h-5 text-gray-800" />
+                <span>VOCÊ ESTÁ ADQUIRINDO: Relatório SpyGram Completo</span>
+            </div>
         </div>
-
-        {/* Sidebar Summary */}
-        <aside className="w-full lg:w-80">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-8">
-                <div className="bg-[#f4f4f4] px-6 py-3">
-                    <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">RESUMO DA COMPRA</h2>
-                </div>
-                <div className="p-8 flex flex-col items-center">
-                    <img src="/spygram_transparentebranco.png" alt="SpyGram" className="h-24 mb-6 brightness-0" />
-                    
-                    <h3 className="text-[13px] font-black text-[#111] uppercase mb-1">Relatório SpyGram Completo</h3>
-                    <p className="text-[11px] text-gray-500 font-medium mb-8">Relatório Completo SpyGram® 🕵️ ✅</p>
-
-                    <div className="w-full space-y-3 border-t border-gray-100 pt-6">
-                        <div className="flex justify-between text-[11px] font-medium">
-                            <span className="text-gray-500">Relatório SpyGram Completo</span>
-                            <span className="text-green-600 font-black">R$ {basePrice.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        {adicionais > 0 && (
-                            <div className="flex justify-between text-[11px] font-medium">
-                                <span className="text-gray-500">Adicionais</span>
-                                <span className="text-green-600 font-black">+ R$ {adicionais.toFixed(2).replace('.', ',')}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between text-[13px] font-black border-t border-gray-100 pt-3">
-                            <span className="text-[#111]">Total Hoje:</span>
-                            <span className="text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
       </div>
 
-      {/* Footer Branding */}
-      <footer className="mt-20 border-t border-gray-200 pt-10 px-4 flex flex-col items-center max-w-6xl mx-auto">
-        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
-            <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase">
-                <Mail className="w-4 h-4" />
-                E-MAIL DE SUPORTE: contato@spygram.com.br
+      {/* Banner Principal Meio */}
+      <div className="px-4 mt-4">
+        <img src="/embaixodobanner.png" alt="Banner Meio" className="w-full rounded-xl shadow-lg" />
+      </div>
+
+      <div className="max-w-md mx-auto px-4 mt-8 space-y-12">
+        
+        {/* Step 1: Personal Data */}
+        <section className="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100">
+          <div className="px-6 pt-6 pb-2">
+            <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
+                <span className="font-black text-sm">1</span>
+                <h2 className="text-xs font-black uppercase tracking-widest">DADOS PESSOAIS</h2>
             </div>
+            <div className="space-y-5 px-1">
+                <div>
+                    <label className="text-sm font-black text-gray-700 mb-1.5 block">Nome completo</label>
+                    <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Digite seu nome completo" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
+                </div>
+                <div>
+                    <label className="text-sm font-black text-gray-700 mb-1.5 block">E-mail</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="E-mail" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
+                </div>
+                <div className="pb-6">
+                    <label className="text-sm font-black text-gray-700 mb-1.5 block">Telefone</label>
+                    <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="Telefone" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
+                </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Step 2: Payment */}
+        <section className="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100">
+          <div className="px-6 pt-6 pb-6">
+            <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
+                <span className="font-black text-sm">2</span>
+                <h2 className="text-xs font-black uppercase tracking-widest">PAGAMENTO</h2>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 mb-6">
+                <button onClick={() => setPaymentMethod('cartao')} className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-[10px] font-bold uppercase transition-all ${paymentMethod === 'cartao' ? 'bg-white border-green-500 text-gray-600' : 'bg-[#f4f4f4] border-gray-200 text-gray-500'}`}>
+                    <CreditCard className="w-4 h-4" /> Cartão de Crédito
+                </button>
+                <button onClick={() => setPaymentMethod('boleto')} className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-[10px] font-bold uppercase transition-all ${paymentMethod === 'boleto' ? 'bg-white border-green-500 text-gray-600' : 'bg-[#f4f4f4] border-gray-200 text-gray-500'}`}>
+                    <LayoutList className="w-4 h-4" /> Boleto
+                </button>
+                <button onClick={() => setPaymentMethod('pix')} className={`relative flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-[10px] font-bold uppercase transition-all ${paymentMethod === 'pix' ? 'bg-white border-green-500 text-gray-600' : 'bg-[#f4f4f4] border-gray-200 text-gray-500'}`}>
+                    <QrCode className="w-4 h-4" /> Pix
+                    {paymentMethod === 'pix' && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-0.5"><Check className="w-3 h-3" /></div>}
+                </button>
+                <button onClick={() => setPaymentMethod('picpay')} className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-[10px] font-bold uppercase transition-all ${paymentMethod === 'picpay' ? 'bg-white border-green-500 text-gray-600' : 'bg-[#f4f4f4] border-gray-200 text-gray-500'}`}>
+                    PicPay
+                </button>
+            </div>
+
+            <div className="bg-[#fcfcfc] border border-gray-100 rounded-lg p-4 mb-6">
+                <div className="text-[11px] text-gray-500 font-medium space-y-4">
+                    <p>01. Pagamento em segundos, sem complicações</p>
+                    <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
+                    <p>03. O PIX foi desenvolvido pelo Banco Central para facilitar suas compras e é 100% seguro.</p>
+                </div>
+            </div>
+
+            <div className="px-1">
+                <label className="text-sm font-black text-gray-700 mb-1.5 block">CPF ou CNPJ</label>
+                <input type="tel" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:border-purple-500 outline-none" />
+            </div>
+          </div>
+        </section>
+
+        {/* Step 3: Order Bumps */}
+        <section className="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100">
+          <div className="px-6 pt-6 pb-8">
+            <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit flex items-center gap-3 mb-6">
+                <span className="font-black text-sm">3</span>
+                <h2 className="text-xs font-black uppercase tracking-widest">COMPRE JUNTO</h2>
+            </div>
+
+            <div className="bg-[#78cc6d] text-white px-4 py-1 rounded-sm text-[11px] font-black uppercase w-fit mb-4 -ml-6 relative">
+                APROVEITE!
+                <div className="absolute top-full left-0 w-0 h-0 border-t-[6px] border-t-[#5a9c51] border-l-[6px] border-l-transparent"></div>
+            </div>
+
+            <p className="text-xs font-medium text-[#444] mb-6">
+                <span className="font-bold text-[#111]">70% das pessoas</span> que compraram Relatório SpyGram Completo também se interessaram por:
+            </p>
+
+            <div className="space-y-4">
+                {(Object.keys(bumps) as Array<keyof typeof bumps>).map((key) => (
+                    <div key={key} className="p-4 border border-gray-100 rounded-2xl flex flex-col items-center bg-[#fcfcfc] text-center">
+                        <img src={bumpDetails[key].img} alt="" className="w-20 h-20 object-contain mb-3" />
+                        <div className="flex-1 flex flex-col items-center">
+                            <input type="checkbox" checked={bumps[key]} onChange={() => handleToggleBump(key)} className="w-5 h-5 rounded border-gray-300 text-green-600 mb-2 cursor-pointer" />
+                            <p className="text-[10px] font-black text-gray-700 uppercase leading-tight mb-2 max-w-[200px]">
+                                {bumpDetails[key].title}
+                            </p>
+                            <p className="text-[11px] font-bold text-[#f15c5c] mb-1 italic">
+                                {bumpDetails[key].desc}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="mt-8 flex flex-col items-center">
+                <button onClick={handleFinalize} className="w-full bg-[#78cc6d] hover:bg-[#6ab961] text-white py-4 px-8 rounded-xl font-black text-lg uppercase flex items-center justify-center gap-3 shadow-lg shadow-green-200 transition-all active:scale-[0.98]">
+                    Finalizar Compra <ChevronRight className="w-5 h-5" />
+                </button>
+                <div className="mt-4 flex items-center gap-2 text-[11px] font-bold text-[#78cc6d] uppercase">
+                    <ShieldCheck className="w-4 h-4" />
+                    Pagamento 100% seguro, processado com criptografia 128bits.
+                </div>
+                <p className="mt-3 text-[10px] text-gray-400 font-medium text-center">
+                    Produto digital, os dados para acesso serão enviados por email.
+                </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Resumo Mobile */}
+        <section className="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100">
+          <div className="px-6 pt-6 pb-6">
+            <div className="bg-[#bdbdbd] text-white px-6 py-1 rounded-full w-fit mx-auto flex items-center gap-3 mb-8">
+                <h2 className="text-xs font-black uppercase tracking-widest">RESUMO DA COMPRA</h2>
+            </div>
+            
             <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">PAGAMENTO PROCESSADO POR:</span>
-                <img src="https://perfectpay.com.br/assets/images/logo-black.png" alt="PerfectPay" className="h-4 opacity-70" />
+                <img src="/logoapp.png" alt="SpyGram" className="h-32 mb-6" />
+                <h3 className="text-base font-black text-[#111] uppercase mb-1">Relatório SpyGram Completo</h3>
+                <p className="text-[11px] text-gray-500 font-medium mb-8">Relatório Completo SpyGram® 🕵️ ✅</p>
+
+                <div className="w-full space-y-4 pt-4">
+                    <div className="flex justify-between text-xs font-medium text-gray-600">
+                        <span>Relatório SpyGram Completo</span>
+                        <span className="font-black">R$ {basePrice.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    {adicionais > 0 && (
+                        <div className="flex justify-between text-xs font-medium text-gray-600">
+                            <span>Adicionais</span>
+                            <span className="font-black">+ R$ {adicionais.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                    )}
+                    <div className="flex justify-between items-center bg-[#fcfcfc] border border-gray-100 p-4 rounded-xl mt-4">
+                        <span className="text-sm font-black text-[#111]">Total Hoje:</span>
+                        <span className="text-sm font-black text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                </div>
             </div>
-            <div className="bg-[#56bc56] text-white py-1.5 px-4 rounded-md text-[10px] font-black uppercase flex items-center gap-2 shadow-sm">
-                <ShieldCheck className="w-4 h-4" /> COMPRA 100% SEGURA
-            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Footer Branding Refinado */}
+      <footer className="mt-20 border-t border-gray-200 pt-10 px-6 flex flex-col items-center max-w-lg mx-auto">
+        <div className="text-center space-y-1 mb-8">
+            <p className="text-xs font-bold text-gray-500">E-MAIL DE SUPORTE: contato@spygram.com.br</p>
         </div>
 
-        <div className="text-center space-y-4">
+        <div className="bg-[#78cc6d] text-white py-2 px-6 rounded-sm text-[11px] font-black uppercase flex items-center gap-2 shadow-sm mb-10 relative">
+            <div className="absolute bottom-full right-4 w-0 h-0 border-b-[6px] border-b-[#5a9c51] border-l-[6px] border-l-transparent"></div>
+            <ShieldCheck className="w-5 h-5" /> COMPRA 100% SEGURA
+        </div>
+
+        <div className="flex flex-col items-center mb-10">
+            <span className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">PAGAMENTO PROCESSADO POR:</span>
+            <img src="https://perfectpay.com.br/assets/images/logo-black.png" alt="PerfectPay" className="h-5 opacity-70" />
+        </div>
+
+        <div className="text-center space-y-3 mb-10">
             <p className="text-[10px] text-gray-400 font-medium">
                 Esta compra será processada por: PerfectPay © 2026 - Todos os direitos reservados.
             </p>
             <p className="text-[10px] text-gray-400 font-medium italic">
                 * * Taxa de 2,99% a.m.
             </p>
-            <p className="text-[10px] text-gray-400 font-medium">
+            <p className="text-[10px] text-gray-400 font-medium leading-relaxed px-4">
                 Ao continuar nesta compra, você concorda com os <span className="underline cursor-pointer">Termos de Compra</span> e <span className="underline cursor-pointer">Termos de Privacidade</span>.
             </p>
-            <div className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">
+            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-4">
                 Ref: PPA22ZU8 | SN: 6A0B849508A08N
             </div>
         </div>
 
-        <div className="mt-10 flex items-center gap-6">
+        <div className="flex items-center gap-6 pb-10">
             <img src="https://static.reclameaqui.com.br/selo/ra1000.png" alt="RA1000" className="h-16" />
         </div>
       </footer>
