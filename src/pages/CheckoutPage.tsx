@@ -122,14 +122,14 @@ const CheckoutPage: React.FC = () => {
 
       {/* --- VERSÃO WEB (DESKTOP) --- */}
       <div className="hidden md:block">
-        {/* HERO WEB - AGORA APENAS O BANNER COMPLETO */}
+        {/* HERO WEB - AGORA APENAS O BANNER COMPLETO (REDUZIDO) */}
         <div className="bg-white border-b border-gray-100 relative overflow-hidden">
           {/* Background Blur mantido sutilmente ao redor */}
           <div className="absolute inset-0 z-0 opacity-10 grayscale blur-[100px] scale-150 pointer-events-none" 
                style={{ backgroundImage: 'url(/banner-topo.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
           
-          <div className="w-full max-w-6xl mx-auto relative z-10">
-              <img src="/banner-topo.png" alt="SpyGram Banner" className="w-full h-auto block" />
+          <div className="w-full max-w-4xl mx-auto relative z-10 py-4">
+              <img src="/banner-topo.png" alt="SpyGram Banner" className="w-full h-auto block rounded-xl shadow-sm" />
           </div>
         </div>
 
