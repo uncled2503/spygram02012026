@@ -53,6 +53,16 @@ const INITIAL_CONVERSATION: ChatMessageProps[] = [
     { sender: 'admin', message: 'Sim! Pagamento único. Sem mensalidades escondidas.', time: '14:31' },
     { sender: 'user', username: 'user333', message: 'Aceita PIX?', time: '14:32' },
     { sender: 'admin', message: 'Com certeza. Liberação imediata após o pagamento.', time: '14:33' },
+    { sender: 'user', username: 'user403', message: 'Consigo ver as mensagens apagadas mesmo?', time: '14:34' },
+    { sender: 'admin', message: 'Sim, @user403. Nosso sistema recupera fotos e conversas deletadas em até 1 ano.', time: '14:35' },
+    { sender: 'user', username: 'user111', message: 'É anônimo? Tenho medo da pessoa descobrir...', time: '14:36' },
+    { sender: 'admin', message: '100% anônimo. O alvo não recebe nenhuma notificação ou aviso de login.', time: '14:37' },
+    { sender: 'user', username: 'user921', message: 'Acabei de comprar! No aguardo do e-mail com os dados.', time: '14:38' },
+    { sender: 'admin', message: 'Seja bem-vindo, @user921! Verifique sua caixa de entrada e também a pasta de spam.', time: '14:39' },
+    { sender: 'user', username: 'user333', message: 'Consegui! Pix feito. Realmente funciona, já estou vendo tudo aqui 😱', time: '14:40' },
+    { sender: 'admin', message: 'Que bom, @user333! Aproveite todas as ferramentas do painel.', time: '14:41' },
+    { sender: 'user', username: 'user403', message: 'Gente, acabei de ver uma coisa que não queria... mas pelo menos agora sei a verdade.', time: '14:42' },
+    { sender: 'admin', message: 'Sinto muito pela descoberta, @user403. Infelizmente a verdade dói, mas é necessária.', time: '14:43' },
 ];
 
 const LiveChatFAQ: React.FC = () => {
@@ -69,26 +79,29 @@ const LiveChatFAQ: React.FC = () => {
     const addMessage = () => {
       if (index < INITIAL_CONVERSATION.length) {
         const msg = INITIAL_CONVERSATION[index];
-        if (msg.sender === 'admin') {
-          setIsTyping(true);
-          setTimeout(() => {
-            setIsTyping(false);
-            setDisplayedMessages(prev => [...prev, msg]);
-            index++;
-            timer = setTimeout(addMessage, 2000);
-          }, 1000);
-        } else {
+        
+        // Simula o tempo de digitação apenas para o admin
+        const typingDelay = msg.sender === 'admin' ? 1500 : 500;
+        
+        setIsTyping(true);
+        
+        timer = setTimeout(() => {
+          setIsTyping(false);
           setDisplayedMessages(prev => [...prev, msg]);
           index++;
-          timer = setTimeout(addMessage, 2000);
-        }
+          // Intervalo entre mensagens
+          const nextMessageDelay = Math.random() * 2000 + 1000;
+          timer = setTimeout(addMessage, nextMessageDelay);
+        }, typingDelay);
       } else {
         setConversationFinished(true);
       }
     };
 
     timer = setTimeout(addMessage, 1000);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -109,7 +122,7 @@ const LiveChatFAQ: React.FC = () => {
       setIsTyping(false);
       setDisplayedMessages(prev => [...prev, { 
         sender: 'admin', 
-        message: 'Estamos com uma alta demanda, mas sua dúvida foi recebida! A liberação do acesso é imediata após a confirmação do pagamento.', 
+        message: 'Estamos com uma alta demanda no momento, mas sua dúvida foi registrada. O acesso é liberado instantaneamente após a confirmação do pagamento no e-mail cadastrado!', 
         time: now 
       }]);
     }, 2000);
@@ -146,11 +159,11 @@ const LiveChatFAQ: React.FC = () => {
             <ChatMessage key={index} {...msg} />
           ))}
           {isTyping && (
-            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-4">
               <span className="animate-bounce">.</span>
               <span className="animate-bounce [animation-delay:0.2s]">.</span>
               <span className="animate-bounce [animation-delay:0.4s]">.</span>
-              Suporte digitando
+              Alguém digitando
             </div>
           )}
         </div>
@@ -177,7 +190,7 @@ const LiveChatFAQ: React.FC = () => {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={conversationFinished ? "Escreva sua dúvida..." : "Aguarde o atendente..."}
+              placeholder={conversationFinished ? "Escreva sua dúvida..." : "Aguarde o carregamento do chat..."}
               disabled={!conversationFinished}
               className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-5 pr-12 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all disabled:opacity-50"
             />
