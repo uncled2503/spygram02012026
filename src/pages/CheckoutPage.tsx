@@ -128,7 +128,7 @@ const CheckoutPage: React.FC = () => {
                <img src="/spygram_transparentebranco.png" alt="SpyGram" className="h-16 brightness-0" />
             </div>
             
-            {/* Collage Placeholder (usando ícones para representar a imagem da collage se não disponível) */}
+            {/* Collage Placeholder */}
             <div className="flex justify-center -space-x-4 mb-8">
                 {[1,2,3,4,5,6,7].map(i => (
                     <div key={i} className="w-14 h-14 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-sm">
@@ -144,7 +144,7 @@ const CheckoutPage: React.FC = () => {
 
             <div className="bg-white shadow-xl rounded-2xl border border-gray-100 p-6 max-w-xl mx-auto flex items-center justify-between gap-8">
                 <div className="flex items-center gap-4">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_\"G\"_logo.svg" className="w-10 h-10" alt="Google" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" className="w-10 h-10" alt="Google" />
                     <div className="text-left">
                         <p className="text-sm font-bold text-gray-500 uppercase tracking-tighter">GOOGLE REVIEWS:</p>
                         <p className="text-xl font-black text-[#111]">(12,3mil) Avaliações</p>
