@@ -87,7 +87,9 @@ const AdminPage: React.FC = () => {
       const matchesSearch = 
         (lead.username_searched?.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (lead.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (lead.phone?.includes(searchTerm));
+        (lead.phone?.includes(searchTerm)) ||
+        (lead.document?.includes(searchTerm)) ||
+        (lead.full_name?.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
       
@@ -135,14 +137,14 @@ const AdminPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         
         {/* Lado Esquerdo: Filtros e Tabela */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
           <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
               <div className="relative w-full md:max-w-md">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input 
                   type="text" 
-                  placeholder="Buscar por @username, email ou telefone..." 
+                  placeholder="Buscar por @username, Nome, Email, CPF ou Telefone..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-black/50 border border-gray-800 rounded-2xl py-3 pl-12 pr-4 text-sm focus:border-purple-500 outline-none transition-all"
@@ -172,10 +174,11 @@ const AdminPage: React.FC = () => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="text-[10px] text-gray-500 uppercase font-black border-b border-gray-800/50">
-                    <th className="pb-4 px-4">Alvo / Origem</th>
-                    <th className="pb-4 px-4">Dados do Lead</th>
+                    <th className="pb-4 px-4">Alvo / Localização</th>
+                    <th className="pb-4 px-4">Identificação do Lead</th>
+                    <th className="pb-4 px-4">E-mail / WhatsApp</th>
                     <th className="pb-4 px-4">Status / Valor</th>
-                    <th className="pb-4 px-4">Data</th>
+                    <th className="pb-4 px-4">Data/Hora</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/30">
@@ -187,17 +190,22 @@ const AdminPage: React.FC = () => {
                           <div>
                             <p className="text-sm font-bold text-white">@{lead.username_searched}</p>
                             <div className="flex items-center gap-1 text-[10px] text-gray-500">
-                              {lead.user_agent?.toLowerCase().includes('mobile') ? <Smartphone size={10} /> : <Monitor size={10} />}
-                              <span>{lead.city}, {lead.state}</span>
+                              <MapPin size={10} className="text-purple-500" />
+                              <span>{lead.city || 'Desconhecida'}, {lead.state || '??'}</span>
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="py-5 px-4">
                         <div className="space-y-1">
-                          <p className="text-xs font-medium text-gray-300">{lead.full_name || 'Anônimo'}</p>
-                          <p className="text-[10px] text-gray-500">{lead.email || 'E-mail não informado'}</p>
-                          <p className="text-[10px] text-gray-500">{lead.phone || 'Sem contato'}</p>
+                          <p className="text-xs font-black text-gray-200 uppercase">{lead.full_name || 'Visitante Anônimo'}</p>
+                          <p className="text-[10px] font-bold text-purple-400 font-mono tracking-tighter">DOC: {lead.document || '---'}</p>
+                        </div>
+                      </td>
+                      <td className="py-5 px-4">
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-medium text-blue-300 lowercase">{lead.email || '---'}</p>
+                          <p className="text-[11px] font-bold text-green-400">{lead.phone || '---'}</p>
                         </div>
                       </td>
                       <td className="py-5 px-4">
@@ -225,72 +233,6 @@ const AdminPage: React.FC = () => {
               </table>
             </div>
           </div>
-        </div>
-
-        {/* Lado Direito: Informações Secundárias */}
-        <div className="space-y-8">
-          
-          {/* Top Cidades */}
-          <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
-              <MapPin size={14} className="text-purple-500" /> Geografia dos Leads
-            </h3>
-            <div className="space-y-4">
-              {metrics.topCities.map(([city, count]) => (
-                <div key={city} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span>{city}</span>
-                    <span className="text-purple-400">{count} leads</span>
-                  </div>
-                  <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500" style={{ width: `${(count/metrics.total)*100}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Análise de Dispositivo */}
-          <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
-              <Smartphone size={14} className="text-blue-500" /> Plataforma de Acesso
-            </h3>
-            <div className="flex items-center gap-6">
-              <div className="relative w-20 h-20">
-                <svg className="w-full h-full" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="16" fill="none" className="stroke-gray-800" strokeWidth="4" />
-                  <circle cx="18" cy="18" r="16" fill="none" className="stroke-blue-500" strokeWidth="4" 
-                    strokeDasharray={`${metrics.mobilePercentage} 100`} strokeLinecap="round" transform="rotate(-90 18 18)" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black">
-                  {metrics.mobilePercentage.toFixed(0)}%
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full" /> Mobile
-                </div>
-                <div className="flex items-center gap-2 text-[10px] font-bold">
-                  <div className="w-2 h-2 bg-gray-800 rounded-full" /> Desktop
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Segurança */}
-          <div className="bg-purple-600/10 border border-purple-500/20 rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <ShieldCheck className="text-purple-500 w-8 h-8" />
-              <div>
-                <p className="text-xs font-black text-white uppercase tracking-tight">Sistema Seguro</p>
-                <p className="text-[10px] text-purple-400 font-bold uppercase">Criptografia Militar</p>
-              </div>
-            </div>
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              Todos os dados capturados são processados via Edge Functions e armazenados em tabelas privadas no Supabase.
-            </p>
-          </div>
-
         </div>
       </div>
     </div>
