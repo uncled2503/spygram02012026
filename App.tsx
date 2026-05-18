@@ -6,6 +6,7 @@ import ErrorMessage from '@/src/components/ErrorMessage';
 import ConsentCheckbox from '@/src/components/ConsentCheckbox';
 import { Lock } from 'lucide-react';
 import LoginPage from '@/src/pages/LoginPage';
+import AdminLoginPage from '@/src/pages/AdminLoginPage'; // Novo Login Admin
 import ServersPage from '@/src/pages/ServersPage';
 import CreditsPage from '@/src/pages/CreditsPage';
 import MessagesPage from '@/src/pages/MessagesPage';
@@ -20,6 +21,7 @@ import { MIN_LOADING_DURATION } from './constants';
 import { fetchProfileData } from './src/services/profileService';
 import { AuthProvider } from './src/context/AuthContext';
 import ProtectedRoute from './src/components/ProtectedRoute';
+import AdminProtectedRoute from './src/components/AdminProtectedRoute'; // Novo Protetor Admin
 import { ProfileData, SuggestedProfile, FeedPost } from './types';
 import BackgroundLayout from './src/components/BackgroundLayout';
 import InvasionCounter from '@/src/components/InvasionCounter';
@@ -142,8 +144,9 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<BackgroundLayout><MainAppContent /></BackgroundLayout>} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminProtectedRoute><AdminPage /></AdminProtectedRoute>} />
           <Route path="/invasion-simulation" element={<BackgroundLayout><InvasionSimulationPage /></BackgroundLayout>} />
           <Route path="/invasion-concluded" element={<BackgroundLayout><InvasionConcludedPage /></BackgroundLayout>} />
           
