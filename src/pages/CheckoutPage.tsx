@@ -69,14 +69,41 @@ const CheckoutPage: React.FC = () => {
     window.location.href = CHECKOUT_URL;
   };
 
+  // Funções de Máscara
+  const maskPhone = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .replace(/(-\d{4})\d+?$/, "$1");
+  };
+
+  const maskCPFCNPJ = (value: string) => {
+    const raw = value.replace(/\D/g, "");
+    if (raw.length <= 11) {
+      return raw
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+    return raw
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d)/, "$1-$2")
+      .substring(0, 18);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let formattedValue = value;
+
     if (name === 'whatsapp') {
-      formattedValue = value.replace(/\D/g, "").substring(0, 11);
+      formattedValue = maskPhone(value);
     } else if (name === 'documento') {
-      formattedValue = value.replace(/\D/g, "").substring(0, 14);
+      formattedValue = maskCPFCNPJ(value);
     }
+
     setFormData(prev => ({ ...prev, [name]: formattedValue }));
   };
 
