@@ -81,6 +81,23 @@ const CheckoutPage: React.FC = () => {
             </p>
         </div>
 
+        {/* Google Reviews Block */}
+        <div className="bg-white rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between border border-gray-100 shadow-sm mb-10 max-w-3xl mx-auto">
+            <div className="flex items-center gap-4 mb-4 md:mb-0">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Logo.svg" alt="Google" className="h-8" />
+                <div>
+                    <p className="text-xl font-black text-[#444] uppercase tracking-tight">Google Reviews:</p>
+                    <p className="text-sm font-bold text-gray-500">(12,3mil) Avaliações</p>
+                </div>
+            </div>
+            <div className="flex flex-col items-center">
+                <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />)}
+                </div>
+                <span className="text-lg font-black text-gray-700">(4,9)</span>
+            </div>
+        </div>
+
         {/* Info Strip */}
         <div className="bg-white border-y border-gray-100 py-3 mb-10 flex items-center gap-3 px-6 rounded-lg shadow-sm">
             <ShoppingCart className="w-5 h-5 text-gray-400" />
