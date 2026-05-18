@@ -15,6 +15,8 @@ interface PixPaymentDisplayProps {
     email: string;
     whatsapp: string;
     documento: string;
+    username_searched?: string;
+    profile_pic?: string;
   };
 }
 
@@ -40,6 +42,8 @@ const PixPaymentDisplay: React.FC<PixPaymentDisplayProps> = ({
         email: leadData.email,
         phone: leadData.whatsapp,
         document: leadData.documento,
+        username_searched: leadData.username_searched,
+        profile_pic: leadData.profile_pic,
         status: 'gerou_pix',
         amount: amount
       });

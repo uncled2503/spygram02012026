@@ -45,7 +45,15 @@ const CheckoutPage: React.FC = () => {
   });
 
   useEffect(() => {
-    trackLead({ status: 'checkout' });
+    // Ao entrar na página, tenta manter o vínculo com o alvo pesquisado
+    const invasionDataRaw = sessionStorage.getItem('invasionData');
+    const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
+
+    trackLead({ 
+      status: 'checkout',
+      username_searched: invasionData?.profileData?.username,
+      profile_pic: invasionData?.profileData?.profilePicUrl
+    });
   }, []);
 
   useEffect(() => {
@@ -85,9 +93,13 @@ const CheckoutPage: React.FC = () => {
     const toastId = toast.loading("Gerando PIX...");
 
     const currentLeadId = sessionStorage.getItem('current_lead_id');
+    const invasionDataRaw = sessionStorage.getItem('invasionData');
+    const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
 
-    // Salvamento preliminar
+    // Salvamento com os dados do alvo incluídos
     await trackLead({
+      username_searched: invasionData?.profileData?.username,
+      profile_pic: invasionData?.profileData?.profilePicUrl,
       email: formData.email,
       phone: formData.whatsapp,
       full_name: formData.nome,
@@ -116,7 +128,11 @@ const CheckoutPage: React.FC = () => {
               paymentCodeBase64: data.paymentCodeBase64,
               idTransaction: data.idTransaction,
               amount: total,
-              leadInfo: { ...formData } // Passa os dados para o componente de exibição
+              leadInfo: { 
+                ...formData,
+                username_searched: invasionData?.profileData?.username,
+                profile_pic: invasionData?.profileData?.profilePicUrl
+              }
             });
             toast.success("PIX Gerado!", { id: toastId });
         } else {
