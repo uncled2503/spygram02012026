@@ -177,9 +177,9 @@ const CheckoutPage: React.FC = () => {
             {/* COLUNA ESQUERDA (FORM E CONTEUDO) */}
             <div className="col-span-8 space-y-8">
                 
-                {/* Promo Banner Desktop */}
-                <div className="rounded-2xl overflow-hidden shadow-2xl relative aspect-[16/7]">
-                    <img src="/embaixodobanner.png" className="w-full h-full object-cover" alt="SpyGram PRO" />
+                {/* Promo Banner Desktop - Redimensionado */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl relative">
+                    <img src="/embaixodobanner.png" className="w-full h-auto block" alt="SpyGram PRO" />
                 </div>
 
                 {/* Step 1: Personal Data Desktop */}
@@ -318,7 +318,7 @@ const CheckoutPage: React.FC = () => {
         </footer>
       </div>
 
-      {/* --- VERSÃO MOBILE (REAPROVEITADA) --- */}
+      {/* --- VERSÃO MOBILE --- */}
       <div className="md:hidden">
         {/* Hero Section Mobile */}
         <div className="w-full bg-white pb-8 relative overflow-hidden">
