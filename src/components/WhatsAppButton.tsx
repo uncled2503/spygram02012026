@@ -19,7 +19,6 @@ const WhatsAppButton: React.FC = () => {
   
   // Verifica se a rota atual começa com algum dos caminhos a ocultar
   const shouldHide = hiddenPaths.some(path => {
-    // Normaliza caminhos com barras adicionais
     const currentPath = location.pathname.toLowerCase();
     return currentPath === path || currentPath.startsWith(path + '/');
   });
@@ -36,7 +35,7 @@ const WhatsAppButton: React.FC = () => {
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex items-center justify-center">
+    <div className="fixed bottom-6 right-6 z-[999999] flex items-center justify-center">
       {/* Anel de Pulso Luminoso (Glow) */}
       <motion.div
         animate={{
