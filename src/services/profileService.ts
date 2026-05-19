@@ -74,6 +74,7 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
                 isPrivate: user.is_private || false,
             };
 
+            // Extraindo perfis em comum (facepile users) da resposta da API
             let suggestions: SuggestedProfile[] = [];
             if (Array.isArray(user.profile_context_facepile_users)) {
                 suggestions = user.profile_context_facepile_users.map((p: any) => ({
