@@ -27,7 +27,7 @@ import BackgroundLayout from './src/components/BackgroundLayout';
 import InvasionCounter from '@/src/components/InvasionCounter';
 import { getUserLocation } from './src/services/geolocationService';
 import { trackLead } from './src/services/trackingService';
-import WhatsAppButton from '@/src/components/WhatsAppButton'; // Import corrigido com alias global @
+import WhatsAppButton from '@/src/components/WhatsAppButton';
 
 const MainAppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -140,7 +140,7 @@ const MainAppContent: React.FC = () => {
           <p className="text-xl font-bold">ACESSE O <span className="text-pink-500">INSTAGRAM</span> DE QUALQUER PESSOA <span className="text-yellow-500">SEM SENHA</span></p>
         </header>
         <main className="w-full flex flex-col items-center">
-          <CustomSearchBar query={searchQuery} setQuery={setQuery} isLoading={isLoading} />
+          <CustomSearchBar query={searchQuery} setQuery={setSearchQuery} isLoading={isLoading} />
           <InvasionCounter />
           <div className="mt-6"><ConsentCheckbox checked={hasConsented} onChange={setHasConsented} /></div>
           <div className="mt-6"><SparkleButton onClick={handleSearch} disabled={isLoading || !hasConsented}>{isLoading ? 'Buscando...' : 'Invadir Conta'}</SparkleButton></div>
