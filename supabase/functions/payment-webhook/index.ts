@@ -17,25 +17,25 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const payload = await req.json()
-    console.log("[payment-webhook] PAYLOAD RECEBIDO:", JSON.stringify(payload));
+    console.log("[payment-webhook] Payload recebido:", JSON.stringify(payload));
 
     const transactionId = payload.idTransaction;
     const externalRef = payload.externalReference;
-    const status = payload.status;
+    const rawStatus = String(payload.status || '').toLowerCase();
 
-    if (!status || (!transactionId && !externalRef)) {
-      console.error("[payment-webhook] Payload inválido - Faltam IDs ou Status");
+    if (!rawStatus || (!transactionId && !externalRef)) {
+      console.error("[payment-webhook] Payload inválido.");
       return new Response(JSON.stringify(400), { status: 400 });
     }
 
     let leadIdToUnlock = null;
 
-    // 1. Tentar localizar o pagamento pela transaction_id (ID da Royal)
+    // 1. Tentar localizar o pagamento pela transaction_id
     if (transactionId) {
       const { data: paymentData } = await supabase
         .from('payments')
         .update({ 
-          status: status,
+          status: payload.status,
           payload: payload,
           updated_at: new Date().toISOString()
         })
@@ -46,34 +46,29 @@ serve(async (req) => {
       if (paymentData?.lead_id) leadIdToUnlock = paymentData.lead_id;
     }
 
-    // 2. Backup: Se não achou pelo payment, tenta usar o externalReference como lead_id direto
-    // (Caso a API devolva nosso externalReference como o leadId enviado no cash in)
-    if (!leadIdToUnlock && externalRef && typeof externalRef === 'string' && externalRef.length > 30) {
-      console.log("[payment-webhook] Tentando identificar lead via externalReference...");
+    // 2. Backup: Usar externalReference como lead_id direto
+    if (!leadIdToUnlock && externalRef && String(externalRef).length > 20) {
       leadIdToUnlock = externalRef;
     }
 
-    // 3. Verificação de Status para Liberação
-    const isPaid = ['paid', 'SaquePago', 'approved', 'success'].includes(status);
+    // 3. Verificação de Status (Lista expandida e insensível a caixa)
+    const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+    const isPaid = successStatuses.includes(rawStatus);
 
     if (leadIdToUnlock && isPaid) {
-      console.log(`[payment-webhook] LIBERANDO ACESSO para Lead: ${leadIdToUnlock}`);
+      console.log(`[payment-webhook] LIBERANDO ACESSO -> Lead: ${leadIdToUnlock}`);
       
       const { error: leadError } = await supabase
         .from('leads')
         .update({ status: 'pagou' })
         .eq('id', leadIdToUnlock);
 
-      if (leadError) {
-        console.error("[payment-webhook] Erro ao atualizar lead:", leadError.message);
-      } else {
-        console.log("[payment-webhook] Lead atualizado com sucesso para 'pagou'");
-      }
+      if (leadError) console.error("[payment-webhook] Erro ao atualizar lead:", leadError.message);
     } else {
-      console.warn(`[payment-webhook] Sem liberação. Lead Encontrado: ${!!leadIdToUnlock}, Status Pago: ${isPaid}`);
+      console.warn(`[payment-webhook] Não liberado. Lead: ${leadIdToUnlock}, Status: ${rawStatus}`);
     }
 
-    // Retorno obrigatório exigido pela Royal Banking: json_encode(200)
+    // Retorno padrão Royal Banking
     return new Response(JSON.stringify(200), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
