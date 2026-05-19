@@ -230,13 +230,12 @@ const CheckoutPage: React.FC = () => {
                     <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Telefone</label>
-                    <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(21) 998510231" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
-                  </div>
-                  {/* Mobile only Email Confirm */}
-                  <div className="space-y-1 md:hidden">
                     <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Confirme seu e-mail</label>
                     <input type="email" name="confirmarEmail" value={formData.confirmarEmail} onChange={handleChange} placeholder="Repita seu e-mail" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Telefone</label>
+                    <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(21) 998510231" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
                   </div>
                   <div className="space-y-1 md:hidden">
                     <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
