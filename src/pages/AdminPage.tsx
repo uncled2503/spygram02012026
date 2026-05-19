@@ -195,6 +195,16 @@ const AdminPage: React.FC = () => {
     pdf.save(`SpyGram-PIX-${selectedLead?.username_searched}.pdf`);
   };
 
+  // Função para mostrar os dados de login
+  const handleShowCredentials = (lead: Lead) => {
+    if (!lead.email) {
+      toast.error("E-mail não registrado para este lead.");
+      return;
+    }
+    // Mostra um alerta fixo para facilitar a leitura do admin
+    alert(`DADOS DE ACESSO:\n\nE-mail: ${lead.email}\nSenha Padrão: 123456`);
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-[#0f0f12] flex flex-col items-center justify-center gap-4">
       <Loader />
@@ -315,6 +325,8 @@ const AdminPage: React.FC = () => {
                           </td>
                           <td className="py-5 px-4">
                             <div className="flex items-center justify-center gap-3">
+                              {/* Botão de Chave para visualizar dados de acesso */}
+                              <ActionButton onClick={() => handleShowCredentials(lead)} icon={Key} color="text-purple-400" title="Ver Acesso" />
                               <ActionButton onClick={() => { setSelectedLead(lead); setShowPixModal(true); setGeneratedPix(null); }} icon={QrCode} color="text-yellow-500" title="Gerar PIX" />
                               <ActionButton onClick={() => window.open(`https://wa.me/55${lead.phone?.replace(/\D/g, '')}`, '_blank')} icon={MessageCircle} color="text-green-500" title="WhatsApp" />
                               <ActionButton onClick={() => handleDeleteLead(lead.id)} icon={Trash2} color="text-red-500" title="Excluir Lead" />
