@@ -25,7 +25,6 @@ import AdminProtectedRoute from './src/components/AdminProtectedRoute';
 import { ProfileData, SuggestedProfile, FeedPost } from './types';
 import BackgroundLayout from './src/components/BackgroundLayout';
 import InvasionCounter from '@/src/components/InvasionCounter';
-import { trackLead } from './src/services/trackingService';
 import { getUserLocation } from './src/services/geolocationService';
 
 const MainAppContent: React.FC = () => {
@@ -74,7 +73,7 @@ const MainAppContent: React.FC = () => {
       sessionStorage.removeItem('current_lead_id');
       localStorage.removeItem('spygram_banned_session');
 
-      const [fetchResult, location] = await Promise.all([
+      const [fetchResult] = await Promise.all([
         fetchProfileData(searchQuery.trim()),
         getUserLocation(),
         new Promise(resolve => setTimeout(resolve, MIN_LOADING_DURATION))
@@ -84,15 +83,7 @@ const MainAppContent: React.FC = () => {
       setConfirmedSuggestions(fetchResult.suggestions);
       setConfirmedPosts(fetchResult.posts);
 
-      await trackLead({
-        username_searched: fetchResult.profile.username,
-        full_name: fetchResult.profile.fullName,
-        profile_pic: fetchResult.profile.profilePicUrl,
-        city: location.city,
-        state: location.state,
-        ip_address: location.ip,
-        status: 'pesquisou'
-      });
+      // trackLead REMOVIDO DAQUI para salvar somente no checkout final
 
     } catch (err) {
       setError("Sistema sobrecarregado, tente novamente mais tarde");
@@ -109,7 +100,7 @@ const MainAppContent: React.FC = () => {
         posts: confirmedPosts,
       };
       sessionStorage.setItem('invasionData', JSON.stringify(invasionData));
-      trackLead({ status: 'confirmou_alvo' });
+      // trackLead REMOVIDO DAQUI
       navigate('/instagram', { state: invasionData });
     }
   }, [confirmedProfileData, confirmedSuggestions, confirmedPosts, navigate]);
@@ -158,12 +149,8 @@ const App: React.FC = () => {
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/admin" element={<AdminProtectedRoute><AdminPage /></AdminProtectedRoute>} />
-          
-          {/* Rota restaurada: Sem BackgroundLayout */}
           <Route path="/instagram" element={<InvasionSimulationPage />} />
-          
           <Route path="/invasion-concluded" element={<BackgroundLayout><InvasionConcludedPage /></BackgroundLayout>} />
-          
           <Route path="/servers" element={<ProtectedRoute><BackgroundLayout><ServersPage /></BackgroundLayout></ProtectedRoute>} />
           <Route path="/credits" element={<ProtectedRoute><BackgroundLayout><CreditsPage /></BackgroundLayout></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />

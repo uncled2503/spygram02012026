@@ -47,19 +47,7 @@ const CheckoutPage: React.FC = () => {
   useEffect(() => {
     // Garante que a página abra no topo
     window.scrollTo(0, 0);
-
-    // Ao entrar na página, tenta manter o vínculo com o alvo pesquisado
-    const invasionDataRaw = sessionStorage.getItem('invasionData');
-    const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
-
-    // Se o lead foi deletado nesta sessão, não tentamos forçar o rastreio aqui
-    if (sessionStorage.getItem('is_deleted_lead') !== 'true') {
-      trackLead({ 
-        status: 'checkout',
-        username_searched: invasionData?.profileData?.username,
-        profile_pic: invasionData?.profileData?.profilePicUrl
-      });
-    }
+    // trackLead REMOVIDO DAQUI para não salvar leads que só visitam a página
   }, []);
 
   useEffect(() => {
@@ -102,7 +90,7 @@ const CheckoutPage: React.FC = () => {
     const invasionDataRaw = sessionStorage.getItem('invasionData');
     const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
 
-    // Salvamento com os dados do alvo incluídos
+    // Salvamento OCORRE SOMENTE AQUI AGORA (Ponto final do funil)
     await trackLead({
       username_searched: invasionData?.profileData?.username,
       profile_pic: invasionData?.profileData?.profilePicUrl,
