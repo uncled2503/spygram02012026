@@ -89,7 +89,7 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
                     profile_pic_url: getProxyImageUrlLight(p.profile_pic_url),
                     fullName: p.full_name,
                     is_private: p.is_private
-                }));
+                })).reverse(); // INVERTIDO: Do último para o primeiro
             }
 
             return { profile, suggestions, posts: [] };
@@ -115,7 +115,7 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
                 fullName: p.full_name || p.username,
                 profile_pic_url: getProxyImageUrlLight(p.profile_pic_url),
                 is_private: p.is_private,
-            }));
+            })).reverse(); // INVERTIDO: Do último para o primeiro
         }
 
         const publicProfiles = suggestions.filter(p => !p.is_private).slice(0, 3);
