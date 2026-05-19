@@ -2,9 +2,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
 import { 
-  Users, DollarSign, Search, MapPin, ShieldCheck, 
+  Users, DollarSign, Search, ShieldCheck, 
   CreditCard, LogOut, RotateCcw,
-  Trash2, MessageCircle, UserPlus, Key
+  Trash2, MessageCircle, Key
 } from 'lucide-react';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
@@ -143,7 +143,7 @@ const AdminPage: React.FC = () => {
     return {
       total,
       paidCount: paid.length,
-      pixCount: pixCount = pixGenerated.length,
+      pixCount: pixGenerated.length,
       checkoutCount: checkouts.length,
       revenue,
       conversion: total > 0 ? (paid.length / total) * 100 : 0
