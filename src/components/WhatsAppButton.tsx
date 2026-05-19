@@ -1,8 +1,10 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 const WhatsAppButton: React.FC = () => {
+  const location = useLocation();
   let isLoggedIn = false;
   
   // Try-catch de segurança para garantir que o componente nunca quebre a renderização do app
@@ -11,6 +13,14 @@ const WhatsAppButton: React.FC = () => {
     isLoggedIn = auth.isLoggedIn;
   } catch (error) {
     isLoggedIn = false;
+  }
+
+  // Ocultar o botão nas telas de simulação, mensagens e chat do Instagram mockupado
+  const hiddenPaths = ['/instagram', '/messages', '/chat'];
+  const shouldHide = hiddenPaths.some(path => location.pathname.startsWith(path));
+
+  if (shouldHide) {
+    return null;
   }
 
   const phoneNumber = "5532987182071";
