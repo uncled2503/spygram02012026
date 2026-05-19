@@ -13,6 +13,7 @@ import PriceDiscountCard from '../components/PriceDiscountCard';
 import LiveChatFAQ from '../components/LiveChatFAQ';
 import GuaranteeBanner from '../components/GuaranteeBanner';
 import StaticFAQSection from '../components/StaticFAQSection';
+import CustomerTestimonials from '../components/CustomerTestimonials'; // Importando novo componente
 import { motion, AnimatePresence } from 'framer-motion';
 import ShineButton from '../components/ui/ShineButton'; 
 import { MOCK_SUGGESTION_NAMES } from '../../constants';
@@ -160,6 +161,15 @@ const InvasionConcludedPage: React.FC = () => {
         <section className="mb-12">
           <LicensePlateLocationCard onUnlockClick={handleUnlockClick} userCity={userCity} />
         </section>
+
+        <SectionDivider />
+
+        {/* NOVA SEÇÃO DE DEPOIMENTOS */}
+        <section className="mb-12">
+          <CustomerTestimonials />
+        </section>
+
+        <SectionDivider />
 
         <section className="mt-16 space-y-8">
           <div className="text-center">
