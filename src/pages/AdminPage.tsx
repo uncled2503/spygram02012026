@@ -398,14 +398,14 @@ const AdminPage: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0f0f12] border border-white/10 w-full max-w-lg rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(139,92,246,0.1)]"
+              className="bg-[#0f0f12] border border-white/10 w-full max-w-lg rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(139,92,246,0.1)] flex flex-col max-h-[90vh]"
             >
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-10">
-                  <h3 className="text-xl font-black text-white uppercase tracking-tighter">Gerar Invasão Manual</h3>
-                  <button onClick={() => setShowPixModal(false)} className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20} /></button>
-                </div>
+              <div className="p-8 pb-4 flex justify-between items-center bg-[#0f0f12] sticky top-0 z-10">
+                <h3 className="text-xl font-black text-white uppercase tracking-tighter">Gerar Invasão Manual</h3>
+                <button onClick={() => setShowPixModal(false)} className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20} /></button>
+              </div>
 
+              <div className="p-8 pt-0 overflow-y-auto flex-1 scrollbar-hide">
                 {!generatedPix ? (
                   <div className="space-y-10">
                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6">
@@ -433,46 +433,54 @@ const AdminPage: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-10 flex flex-col items-center">
-                    <div ref={pixPdfRef} className="bg-white p-14 rounded-[3rem] text-black w-full text-center shadow-2xl">
-                      <div className="flex justify-center mb-10">
-                        <img src="/spygram_transparentebranco.png" alt="SpyGram" className="h-10 brightness-0" />
+                  <div className="space-y-8 flex flex-col items-center">
+                    {/* Container do Protocolo que será transformado em PDF */}
+                    <div ref={pixPdfRef} className="bg-white p-10 rounded-[2.5rem] text-black w-full text-center shadow-2xl">
+                      <div className="flex justify-center mb-8">
+                        <img src="/spygram_transparentebranco.png" alt="SpyGram" className="h-8 brightness-0" />
                       </div>
-                      <div className="mb-10">
+                      <div className="mb-8">
                         <h4 className="text-2xl font-black uppercase tracking-tighter">Protocolo de Pagamento</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">ID: {selectedLead?.username_searched?.toUpperCase()}</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">SISTEMA SPYGRAM INTELLIGENCE</p>
                       </div>
                       
-                      <div className="bg-gray-100 p-10 rounded-[2.5rem] inline-block mb-10 border border-gray-200 shadow-inner">
-                        <img src={`data:image/png;base64,${generatedPix.paymentCodeBase64}`} className="w-56 h-56" />
+                      <div className="bg-gray-50 p-8 rounded-[2rem] inline-block mb-8 border border-gray-100">
+                        {generatedPix.paymentCodeBase64 && (
+                          <img 
+                            src={generatedPix.paymentCodeBase64.startsWith('data:') ? generatedPix.paymentCodeBase64 : `data:image/png;base64,${generatedPix.paymentCodeBase64}`} 
+                            alt="QR Code"
+                            className="w-48 h-48" 
+                          />
+                        )}
                       </div>
                       
-                      <div className="text-left space-y-6 border-t border-gray-100 pt-10">
+                      <div className="text-left space-y-6 border-t border-gray-100 pt-8">
                         <div className="flex justify-between items-end">
                            <div>
-                             <p className="text-[9px] font-black text-gray-400 uppercase mb-2">Beneficiário</p>
+                             <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Beneficiário</p>
                              <p className="text-sm font-black uppercase">SpyGram Intelligence</p>
                            </div>
                            <div className="text-right">
-                             <p className="text-[9px] font-black text-gray-400 uppercase mb-2">Valor Final</p>
+                             <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Valor Final</p>
                              <p className="text-3xl font-black">R$ {parseFloat(pixAmount).toFixed(2)}</p>
                            </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex gap-4 w-full">
+                    {/* Botões de Ação Fora do PDF */}
+                    <div className="flex flex-col sm:flex-row gap-4 w-full">
                       <button 
                         onClick={() => { navigator.clipboard.writeText(generatedPix.paymentCode); toast.success('Copiado!'); }}
-                        className="flex-1 bg-white/5 border border-white/10 text-white font-black py-6 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
+                        className="flex-1 bg-white/5 border border-white/10 text-white font-black py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all text-xs"
                       >
-                        <FileText size={20} /> COPIAR CÓDIGO
+                        <FileText size={18} /> COPIAR CÓDIGO
                       </button>
                       <button 
                         onClick={downloadPixPdf}
-                        className="flex-1 bg-purple-600 text-white font-black py-6 rounded-2xl flex items-center justify-center gap-3 hover:bg-purple-500 shadow-2xl shadow-purple-600/30 transition-all"
+                        className="flex-1 bg-purple-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-purple-500 shadow-2xl shadow-purple-600/30 transition-all text-xs"
                       >
-                        <Download size={20} /> SALVAR PDF
+                        <Download size={18} /> SALVAR PDF
                       </button>
                     </div>
                   </div>
