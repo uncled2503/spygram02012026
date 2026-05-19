@@ -25,13 +25,14 @@ const maskPhone = (value: string) => {
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(0); // 00:00 como no print
+  const [timeLeft, setTimeLeft] = useState(240); // 4 minutos
   const [isProcessing, setIsProcessing] = useState(false);
   const [pixData, setPixData] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
+    confirmarEmail: '',
     whatsapp: '',
     documento: ''
   });
@@ -47,36 +48,25 @@ const CheckoutPage: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
   const basePrice = 29.90;
   const bumpDetails = {
-    pro: { 
-      title: 'ADQUIRIR TAMBÉM ACESSO VITALÍCIO AO SPYGRAM PRO', 
-      price: 9.90, 
-      img: '/order-bumps/vitalicio.jpg', 
-      desc: 'Tenha acesso permanente a ferramenta SpyGram PRO!', 
-      checkText: '✅ À VISTA POR R$ 9,90' 
-    },
-    social: { 
-      title: 'ADQUIRIR TAMBÉM ESPIÃO INSTAGRAM + FACEBOOK + WHATSAPP', 
-      price: 19.90, 
-      img: '/order-bumps/social.jpg', 
-      desc: 'Tenha acesso a todas as redes sociais de quem você quiser!', 
-      checkText: '✅ À VISTA POR R$ 19,90' 
-    },
-    recover: { 
-      title: 'ADQUIRIR TAMBÉM RECUPERADOR DE MENSAGENS APAGADAS', 
-      price: 15.90, 
-      img: '/order-bumps/recover.jpg', 
-      desc: 'Recupere todas as mensagens apagadas do instagram!', 
-      checkText: '✅ À VISTA POR R$ 15,90' 
-    },
-    track: { 
-      title: 'ADQUIRIR TAMBÉM RASTREAMENTO 24 HORAS', 
-      price: 15.90, 
-      img: '/order-bumps/track.jpg', 
-      desc: 'Rastreie a pessoa que quiser usando somente o celular por tempo ilimitado! Saiba cada passo dela!', 
-      checkText: '✅ À VISTA POR R$ 15,90' 
-    }
+    pro: { title: 'ACESSO VITALÍCIO PRO', price: 9.90, img: '/order-bumps/vitalicio.jpg', desc: 'Tenha acesso permanente a ferramenta SpyGram PRO!', checkText: 'ADQUIRIR TAMBÉM ACESSO VITALÍCIO AO SPYGRAM PRO ✅ À VISTA POR R$ 9,90' },
+    social: { title: 'ESPIÃO SOCIAL COMPLETO', price: 19.90, img: '/order-bumps/social.jpg', desc: 'Tenha acesso a todas as redes sociais de quem você quiser!', checkText: 'ADQUIRIR TAMBÉM ESPIÃO INSTAGRAM + FACEBOOK + WHATSAPP À VISTA POR R$ 19,90' },
+    recover: { title: 'RECUPERADOR DE MENSAGENS', price: 15.90, img: '/order-bumps/recover.jpg', desc: 'Recupere todas as mensagens apagadas do instagram!', checkText: 'ADQUIRIR TAMBÉM RECUPERADOR DE MENSAGENS APAGADAS À VISTA POR R$ 15,90' },
+    track: { title: 'RASTREAMENTO 24H', price: 15.90, img: '/order-bumps/track.jpg', desc: 'Rastreie a pessoa que quiser usando somente o celular por tempo ilimitado! Saiba cada passo dela!', checkText: 'ADQUIRIR TAMBÉM RASTREAMENTO 24 HORAS À VISTA POR R$ 15,90' }
   };
 
   const adicionais = Object.keys(bumps).reduce((acc, key) => {
@@ -86,8 +76,13 @@ const CheckoutPage: React.FC = () => {
   const total = basePrice + adicionais;
 
   const handleFinalize = async () => {
-    if (!formData.nome || !formData.email || !formData.documento) {
+    if (!formData.nome || !formData.email || !formData.confirmarEmail || !formData.documento) {
         toast.error("Preencha todos os dados.");
+        return;
+    }
+
+    if (formData.email.trim().toLowerCase() !== formData.confirmarEmail.trim().toLowerCase()) {
+        toast.error("Os e-mails não coincidem.");
         return;
     }
 
@@ -180,22 +175,23 @@ const CheckoutPage: React.FC = () => {
       <SalesNotification />
       
       {/* Timer Header */}
-      <div className="w-full bg-[#f15c5c] text-white py-2 px-4 flex items-center justify-center sticky top-0 z-50 shadow-md gap-3">
-        <span className="text-[11px] font-bold uppercase tracking-tight">SUA VAGA ESTÁ GARANTIDA ENQUANTO ESTIVER NESSA PÁGINA!</span>
-        <div className="flex items-center gap-1">
+      <div className="w-full bg-[#f15c5c] text-white py-2 px-4 flex flex-col md:flex-row items-center justify-center sticky top-0 z-50 shadow-md gap-2">
+        <div className="flex items-center gap-2">
+           <span className="text-[11px] font-bold uppercase tracking-tight">SUA VAGA ESTÁ GARANTIDA ENQUANTO ESTIVER NESSA PÁGINA!</span>
            <Clock size={16} />
-           <span className="text-[14px] font-black uppercase">00:00</span>
+           <span className="text-[14px] font-black uppercase">{formatTimer(timeLeft)}</span>
         </div>
       </div>
 
-      {/* Hero Section */}
-      <section className="bg-white pt-10 pb-8 flex flex-col items-center">
-        <div className="relative mb-6">
-          <img src="/spygram_transparentebranco.png" alt="SpyGram" className="h-14 brightness-0 mx-auto" />
-          <div className="flex justify-center -space-x-4 mt-8">
-            {[1,2,3,4,5,6,7,8,9,10,11,12].map(i => (
-              <div key={i} className="w-16 h-16 rounded-full border-2 border-white shadow-xl overflow-hidden bg-gray-200">
-                <img src="/perfil.jpg" alt="User" className="w-full h-full object-cover grayscale opacity-40" />
+      {/* Hero Section Web */}
+      <section className="bg-white pt-10 pb-16 flex flex-col items-center border-b border-gray-100">
+        <div className="relative mb-8">
+          <img src="/spygram_transparentebranco.png" alt="SpyGram" className="h-12 brightness-0 mx-auto mb-6" />
+          {/* Avatar bubbles mockup simulation based on print */}
+          <div className="flex justify-center -space-x-4 mb-10">
+            {[1,2,3,4,5,6,7].map(i => (
+              <div key={i} className="w-16 h-16 rounded-full border-2 border-white shadow-lg overflow-hidden bg-gray-200">
+                <img src="/perfil.jpg" alt="User" className="w-full h-full object-cover grayscale opacity-60" />
               </div>
             ))}
           </div>
@@ -205,18 +201,20 @@ const CheckoutPage: React.FC = () => {
           <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter uppercase leading-tight">
             +12,3mil pessoas utilizam <br /> e aprovam o SpyGram®.
           </h1>
-          <p className="text-gray-500 text-sm md:text-lg font-medium leading-relaxed mb-8">
+          <p className="text-gray-500 text-sm md:text-lg font-medium leading-relaxed mb-10">
             Este aplicativo foi testado e aprovado por profissionais, contando com o selo de confiança 'Google Reviews'.
           </p>
 
-          <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm inline-flex flex-col md:flex-row items-center gap-10">
+          {/* Google Reviews Badge */}
+          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm inline-flex flex-col md:flex-row items-center gap-6">
             <div className="flex items-center gap-4">
               <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" alt="Google" className="h-6" />
               <div className="text-left">
-                <p className="font-black text-xs uppercase tracking-widest text-gray-400">GOOGLE REVIEWS:</p>
+                <p className="font-black text-sm uppercase tracking-widest text-gray-400">Google Reviews:</p>
                 <p className="font-black text-xl">(12,3mil) Avaliações</p>
               </div>
             </div>
+            <div className="h-px w-full md:h-12 md:w-px bg-gray-200"></div>
             <div className="flex items-center gap-3">
               <div className="flex text-yellow-400">
                 {[1,2,3,4,5].map(i => <Star key={i} size={24} fill="currentColor" />)}
@@ -228,9 +226,9 @@ const CheckoutPage: React.FC = () => {
       </section>
 
       {/* Info Bar */}
-      <div className="max-w-6xl mx-auto px-4 mt-8 mb-10">
-        <div className="bg-white rounded-xl py-3 px-5 flex items-center gap-3 shadow-sm border border-gray-100">
-          <ShoppingCart size={18} className="text-gray-300" />
+      <div className="w-full bg-white border-b border-gray-200 py-3 mb-10">
+        <div className="max-w-6xl mx-auto px-4 flex items-center gap-3">
+          <ShoppingCart size={18} className="text-gray-400" />
           <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
             VOCÊ ESTÁ ADQUIRIRINDO: <span className="text-gray-600">Relatório SpyGram Completo</span>
           </p>
@@ -239,67 +237,69 @@ const CheckoutPage: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-4">
         
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Coluna Esquerda: Banner e Formulários */}
+          {/* Left Column: Banner & Forms */}
           <div className="lg:col-span-8 space-y-10">
             
             {/* Banner Section */}
-            <div className="w-full rounded-[1.5rem] overflow-hidden shadow-2xl">
-              <img src="/banner-checkout-final.jpg" alt="Banner Final" className="w-full h-auto block" />
+            <div className="w-full rounded-[2rem] overflow-hidden shadow-2xl">
+              <img src="/banner-checkout-final.jpg" alt="Finalize sua compra" className="w-full h-auto block" />
             </div>
 
+            {/* Sections 1 & 2 side by side on desktop */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               
               {/* Section 1: Dados Pessoais */}
-              <div className="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-[#e9e9e9] p-4 border-b border-gray-200 flex items-center gap-3">
-                   <div className="w-7 h-7 rounded-full bg-[#afafaf] flex items-center justify-center text-white text-[12px] font-black">1</div>
-                   <h3 className="font-black text-[#afafaf] uppercase tracking-widest text-[10px]">Dados Pessoais</h3>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-gray-50 p-4 border-b border-gray-100 flex items-center gap-3">
+                   <div className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-white text-[10px] font-black">1</div>
+                   <h3 className="font-black text-gray-400 uppercase tracking-widest text-[10px]">Dados Pessoais</h3>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-5">
                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">Nome completo</label>
-                      <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Teste" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none bg-white" />
+                      <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Nome completo</label>
+                      <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Seu nome aqui" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all bg-gray-50/30" />
                    </div>
                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">E-mail</label>
-                      <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="bellycompany@gmail.com" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none bg-white" />
+                      <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">E-mail</label>
+                      <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all bg-gray-50/30" />
                    </div>
                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">Telefone</label>
-                      <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(21) 998510231" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none bg-white" />
+                      <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Telefone</label>
+                      <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(21) 998510231" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all bg-gray-50/30" />
                    </div>
                 </div>
               </div>
 
               {/* Section 2: Pagamento */}
-              <div className="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-[#e9e9e9] p-4 border-b border-gray-200 flex items-center gap-3">
-                   <div className="w-7 h-7 rounded-full bg-[#afafaf] flex items-center justify-center text-white text-[12px] font-black">2</div>
-                   <h3 className="font-black text-[#afafaf] uppercase tracking-widest text-[10px]">Pagamento</h3>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-gray-50 p-4 border-b border-gray-100 flex items-center gap-3">
+                   <div className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-white text-[10px] font-black">2</div>
+                   <h3 className="font-black text-gray-400 uppercase tracking-widest text-[10px]">Pagamento</h3>
                 </div>
                 
                 <div className="p-6">
                    <div className="grid grid-cols-2 gap-2 mb-6">
-                      <button className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-[10px] font-black uppercase text-gray-400 opacity-60"><CreditCard size={16} /> Cartão de Crédito</button>
-                      <button className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-[10px] font-black uppercase text-gray-400 opacity-60"><FileText size={16} /> Boleto</button>
-                      <button className="flex items-center justify-between px-3 py-2.5 border-2 border-[#78cc6d] bg-white rounded-lg text-[10px] font-black uppercase text-[#78cc6d] relative">
-                         <div className="flex items-center gap-2"><QrCode size={16} /> Pix</div>
-                         <div className="bg-[#78cc6d] rounded-full p-0.5"><Check size={10} className="text-white" /></div>
+                      <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-xl text-[9px] font-black uppercase text-gray-400 opacity-50"><CreditCard size={18} />Cartão</button>
+                      <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-xl text-[9px] font-black uppercase text-gray-400 opacity-50"><FileText size={18} />Boleto</button>
+                      <button className="flex flex-col items-center justify-center p-3 border-2 border-[#78cc6d] bg-green-50 rounded-xl text-[9px] font-black uppercase text-[#78cc6d] relative">
+                        <Check size={12} className="absolute top-1 right-1" />
+                        <QrCode size={18} />Pix
                       </button>
-                      <img src="https://logodownload.org/wp-content/uploads/2018/05/picpay-logo.png" className="h-10 object-contain p-2 border border-gray-200 rounded-lg grayscale opacity-50" alt="PicPay" />
+                      <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-xl text-[9px] font-black uppercase text-gray-400 opacity-50">PicPay</button>
                    </div>
 
                    <div className="space-y-4">
-                      <div className="bg-white border border-gray-100 rounded-lg p-4 text-[10px] text-gray-400 space-y-3 leading-tight">
+                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-[10px] text-gray-500 space-y-2 leading-tight">
                          <p>01. Pagamento em segundos, sem complicações</p>
                          <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
                          <p>03. O PIX foi desenvolvido pelo Banco Central para facilitar suas compras e é 100% seguro.</p>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
-                        <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none" />
+                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
+                        <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="Digite seu CPF ou CNPJ" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all bg-white shadow-inner" />
                       </div>
                    </div>
                 </div>
@@ -307,85 +307,93 @@ const CheckoutPage: React.FC = () => {
 
             </div>
 
-            {/* Section 3: Compre Junto (Fiel ao Modelo) */}
-            <div className="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="bg-[#e9e9e9] p-4 border-b border-gray-200 flex items-center gap-3">
-                 <div className="w-7 h-7 rounded-full bg-[#afafaf] flex items-center justify-center text-white text-[12px] font-black">3</div>
-                 <h3 className="font-black text-[#afafaf] uppercase tracking-widest text-[10px]">Compre Junto</h3>
+            {/* Section 3: Compre Junto */}
+            <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+              <div className="bg-gray-50 p-4 border-b border-gray-100 flex items-center gap-3">
+                 <div className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-white text-[10px] font-black">3</div>
+                 <h3 className="font-black text-gray-400 uppercase tracking-widest text-[10px]">Compre Junto</h3>
               </div>
               
               <div className="p-8">
-                 <div className="bg-[#78cc6d] text-white py-1 px-3 rounded-md text-[10px] font-black uppercase inline-block mb-4">APROVEITE!</div>
-                 <p className="text-[12px] font-bold mb-8 leading-tight">70% das pessoas que compraram <span className="text-gray-800">Relatório SpyGram Completo</span> também se interessaram por:</p>
+                 <div className="bg-[#78cc6d] text-white py-1 px-3 rounded-lg text-[9px] font-black uppercase inline-block mb-4">Aproveite!</div>
+                 <p className="text-xs font-bold mb-8 leading-tight">70% das pessoas que compraram <span className="text-gray-800">Relatório SpyGram Completo</span> também se interessaram por:</p>
                  
-                 <div className="space-y-4 mb-10">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                    {Object.entries(bumpDetails).map(([key, item]) => (
-                     <div key={key} onClick={() => toggleBump(key as keyof typeof bumps)} className="flex items-start gap-6 p-6 border border-gray-100 rounded-[1.5rem] bg-[#fdfdfd] cursor-pointer hover:shadow-md transition-all">
-                        <img src={item.img} className="w-20 h-20 rounded-xl object-contain bg-white p-2 border border-gray-100" alt="Icon" />
-                        <div className="flex-1">
-                           <div className="flex justify-between items-start">
-                              <p className="text-[11px] font-black text-gray-500 uppercase leading-snug flex-1">
-                                {item.title} <span className="text-[#78cc6d]">{item.checkText}</span>
-                              </p>
-                              <div className={`w-6 h-6 border-2 rounded transition-colors flex-shrink-0 ${bumps[key as keyof typeof bumps] ? 'bg-white border-gray-300' : 'bg-white border-gray-300'}`}>
-                                 <input type="checkbox" checked={bumps[key as keyof typeof bumps]} onChange={() => {}} className="w-full h-full opacity-0 absolute cursor-pointer" />
-                                 {bumps[key as keyof typeof bumps] && <Check size={18} className="text-[#78cc6d] font-bold" />}
-                              </div>
+                     <div key={key} onClick={() => toggleBump(key as keyof typeof bumps)} className={`p-5 border border-gray-100 rounded-3xl transition-all cursor-pointer relative overflow-hidden group ${bumps[key as keyof typeof bumps] ? 'bg-green-50 border-[#78cc6d]' : 'bg-[#fcfcfc] hover:bg-gray-50'}`}>
+                        <div className="flex items-start gap-4 mb-3">
+                           <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm border border-gray-200 flex-shrink-0">
+                             <img src={item.img} className="w-full h-full object-cover" alt="Bump" />
                            </div>
-                           <p className="text-[11px] text-[#f15c5c] font-bold mt-2">{item.desc}</p>
+                           <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                 <p className="text-[9px] font-black leading-tight text-gray-500 uppercase max-w-[150px]">{item.checkText}</p>
+                                 <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors flex-shrink-0 ${bumps[key as keyof typeof bumps] ? 'bg-[#78cc6d] border-[#78cc6d]' : 'bg-white border-gray-300'}`}>
+                                    {bumps[key as keyof typeof bumps] && <Check size={12} className="text-white" />}
+                                 </div>
+                              </div>
+                              <p className="text-[12px] font-black text-[#78cc6d] mt-2 tracking-tighter">POR APENAS R$ {item.price.toFixed(2).replace('.', ',')}</p>
+                           </div>
                         </div>
+                        <p className="text-[10px] text-red-500 font-bold leading-tight mt-2 opacity-80">{item.desc}</p>
                      </div>
                    ))}
                  </div>
 
-                 <button onClick={handleFinalize} disabled={isProcessing} className="w-full bg-[#78cc6d] hover:bg-[#6ab961] text-white py-4 rounded-xl font-black text-lg uppercase shadow-xl shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                 <button onClick={handleFinalize} disabled={isProcessing} className="w-full bg-[#78cc6d] hover:bg-[#6ab961] text-white py-5 rounded-2xl font-black text-lg uppercase shadow-xl shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
                     {isProcessing ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Compra <ChevronRight size={22} /></>}
                  </button>
                  
                  <div className="flex flex-col items-center gap-3 mt-6">
-                    <div className="flex items-center gap-2 text-[11px] font-bold text-green-600">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-green-600">
                        <Lock size={14} /> Pagamento 100% seguro, processado com criptografia 128bits.
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center">Produto digital, os dados para acesso serão enviados por email.</p>
+                    <p className="text-[10px] text-gray-400 text-center leading-relaxed">Produto digital, os dados para acesso serão enviados por email imediatamente após a confirmação.</p>
                  </div>
               </div>
             </div>
 
           </div>
 
-          {/* Coluna Direita: Resumo da Compra (Sticky) */}
+          {/* Right Column: Order Summary (Sticky) */}
           <div className="lg:col-span-4">
             <div className="sticky top-24 space-y-6">
-               <div className="bg-white rounded-[1.5rem] shadow-xl border border-gray-100 overflow-hidden">
-                  <div className="bg-[#e9e9e9] p-4 border-b border-gray-200 flex justify-center">
-                    <h3 className="font-black text-[#afafaf] uppercase tracking-widest text-[10px]">Resumo da Compra</h3>
+               <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
+                  <div className="bg-gray-200/50 p-4 border-b border-gray-200 flex justify-center">
+                    <h3 className="font-black text-gray-400 uppercase tracking-widest text-[10px]">Resumo da Compra</h3>
                   </div>
-                  <div className="p-8 flex flex-col items-center">
-                     <img src="/spygram_transparentebranco.png" className="h-14 brightness-0 opacity-80 mb-10" alt="SpyGram" />
-                     
-                     <div className="w-full text-center mb-8">
-                        <p className="text-sm font-black text-gray-800">Relatório SpyGram Completo</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Relatório Completo SpyGram® 🕵️ ✅</p>
-                     </div>
-
-                     <div className="w-full space-y-4 border-t border-gray-100 pt-6">
-                        <div className="flex justify-between items-center text-[11px] font-bold">
-                           <span className="text-gray-400">Relatório SpyGram Completo</span>
-                           <span className="text-[#78cc6d]">R$ 29,90</span>
+                  <div className="p-10 flex flex-col items-center">
+                     <img src="/spygram_transparentebranco.png" className="h-20 brightness-0 opacity-80 mb-10" alt="SpyGram Logo" />
+                     <div className="w-full border-t border-gray-100 pt-8 space-y-6">
+                        <div className="flex justify-between items-start gap-4">
+                           <div className="flex flex-col">
+                             <span className="text-sm font-black text-gray-800 leading-tight">Relatório SpyGram Completo</span>
+                             <span className="text-[10px] text-[#78cc6d] font-bold uppercase mt-1">✓ Relatório Completo SpyGram® 🕵️</span>
+                           </div>
+                           <span className="text-sm font-bold text-gray-400 tabular-nums">R$ 29,90</span>
                         </div>
                         
+                        {/* Selected Bumps List */}
                         {Object.entries(bumps).map(([key, isActive]) => isActive && (
-                          <div key={key} className="flex justify-between items-center text-[11px] font-bold animate-fade-in">
-                            <span className="text-gray-400">{bumpDetails[key as keyof typeof bumpDetails].title.substring(0, 25)}...</span>
-                            <span className="text-[#78cc6d]">R$ {bumpDetails[key as keyof typeof bumpDetails].price.toFixed(2).replace('.', ',')}</span>
+                          <div key={key} className="flex justify-between items-center animate-fade-in">
+                            <span className="text-xs font-bold text-gray-600">{bumpDetails[key as keyof typeof bumpDetails].title}</span>
+                            <span className="text-xs font-bold text-gray-400 tabular-nums">R$ {bumpDetails[key as keyof typeof bumpDetails].price.toFixed(2).replace('.', ',')}</span>
                           </div>
                         ))}
 
-                        <div className="bg-[#f2f2f2] p-3 rounded-lg flex justify-between items-center mt-6">
-                           <span className="text-[10px] font-black text-gray-400 uppercase">Total Hoje:</span>
-                           <span className="text-sm font-black text-[#78cc6d]">R$ {total.toFixed(2).replace('.', ',')}</span>
+                        <div className="bg-gray-50 p-5 rounded-2xl flex justify-between items-center mt-10 border border-gray-100">
+                           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Hoje:</span>
+                           <span className="text-xl font-black text-[#78cc6d] tabular-nums">R$ {total.toFixed(2).replace('.', ',')}</span>
                         </div>
                      </div>
+                  </div>
+               </div>
+               
+               {/* Additional Trust Seals */}
+               <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full border border-gray-200 shadow-sm">
+                    <ShieldCheck className="text-[#78cc6d] w-5 h-5" />
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Compra Protegida</span>
                   </div>
                </div>
             </div>
@@ -393,33 +401,38 @@ const CheckoutPage: React.FC = () => {
 
         </div>
 
-        {/* Rodapé Fiel ao Modelo */}
-        <footer className="mt-20 space-y-12">
-           <div className="bg-white rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm border border-gray-100">
+        {/* Footer info Web */}
+        <footer className="mt-20 pt-10 border-t border-gray-200 text-center space-y-10">
+           <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4 py-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
               <p className="text-[11px] font-bold text-gray-500 uppercase">E-MAIL DE SUPORTE: contato@spygram.com.br</p>
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-6">
                 <div className="flex flex-col items-end">
-                   <span className="text-[9px] font-black text-gray-400 uppercase">PAGAMENTO PROCESSADO POR:</span>
+                   <span className="text-[8px] font-black text-gray-400 uppercase">Pagamento processado por:</span>
                    <img src="https://perfectpay.com.br/wp-content/uploads/2021/04/logo-perfectpay-site.png" className="h-4 mt-1" alt="PerfectPay" />
                 </div>
-                <div className="bg-[#78cc6d] text-white py-2.5 px-6 rounded-lg inline-flex items-center gap-2 text-[10px] font-black uppercase shadow-md">
+                <div className="bg-[#78cc6d] text-white py-2 px-6 rounded-xl inline-flex items-center gap-3 text-[10px] font-black uppercase shadow-lg shadow-green-500/20">
                    <ShieldCheck size={16} /> COMPRA 100% SEGURA
                 </div>
               </div>
            </div>
 
-           <div className="text-center space-y-4 text-gray-400 text-[10px]">
-             <p>Esta compra será processada por: PerfectPay © 2026 - Todos os direitos reservados.</p>
-             <p>* * Taxa de 2,99% a.m.</p>
-             <p>Ao continuar nesta compra, você concorda com os <span className="underline">Termos de Compra</span> e <span className="underline">Termos de Privacidade</span>.</p>
-             <p className="text-gray-300 font-bold uppercase tracking-widest pt-4">Ref: PPA22ZU8 <br /> SN: 6A0BEB66D8980N</p>
+           <div className="space-y-4 max-w-2xl mx-auto">
+             <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+               Esta compra será processada por: PerfectPay © 2026 - Todos os direitos reservados. <br />
+               * * Taxa de 2,99% a.m. <br />
+               Ao continuar nesta compra, você concorda com os <span className="underline cursor-pointer">Termos de Compra</span> e <span className="underline cursor-pointer">Termos de Privacidade</span>.
+             </p>
+             <div className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">
+               Ref: PPA22ZU8 <br /> SN: 6A0BEB66D8980N
+             </div>
              
-             <div className="pt-8">
-               <div className="bg-white border border-gray-200 rounded-xl p-3 inline-flex items-center gap-4">
+             {/* Reclame Aqui Mockup */}
+             <div className="pt-6">
+               <div className="bg-white border border-gray-100 rounded-xl p-3 inline-flex items-center gap-4 shadow-sm">
                  <img src="https://static.reclameaqui.com.br/core/images/logo-reclame-aqui.png" alt="Reclame Aqui" className="h-6" />
-                 <div className="flex flex-col items-start border-l border-gray-200 pl-4">
-                    <span className="text-[10px] font-black text-green-600 uppercase">RA 1000</span>
-                    <span className="text-[8px] font-bold text-gray-400">ReclameAqui</span>
+                 <div className="flex flex-col items-start">
+                    <span className="text-[10px] font-black text-green-600 uppercase">Selo RA 1000</span>
+                    <span className="text-[8px] font-bold text-gray-400">Excelente Reputação</span>
                  </div>
                </div>
              </div>
