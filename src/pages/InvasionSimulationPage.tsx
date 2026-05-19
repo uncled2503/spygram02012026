@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ProfileData, SuggestedProfile, FeedPost } from '../../types';
 import InstagramLoginSimulator from '../components/InstagramLoginSimulator';
@@ -25,9 +25,19 @@ const InvasionSimulationPage: React.FC = () => {
   const navigate = useNavigate();
   const { isLoggedIn, login } = useAuth();
 
+  // Gerar mockups iniciais para evitar tela vazia
+  const initialMockups = useMemo(() => {
+    const shuffledNames = [...MOCK_SUGGESTION_NAMES].sort(() => 0.5 - Math.random());
+    return shuffledNames.slice(0, 15).map((name) => ({
+      username: name.toLowerCase().replace(' ', '') + Math.floor(Math.random() * 100),
+      fullName: name,
+      profile_pic_url: '/perfil.jpg', 
+    }));
+  }, []);
+
   const [profileData, setProfileData] = useState<ProfileData | undefined>();
-  const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>([]);
-  const [posts, setPosts] = useState<FeedPost[] | undefined>();
+  const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>(initialMockups);
+  const [posts, setPosts] = useState<FeedPost[]>([]);
 
   const [stage, setStage] = useState<SimulationStage>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -39,25 +49,6 @@ const InvasionSimulationPage: React.FC = () => {
     const loadAllDataAndProceed = async () => {
       const storedData = sessionStorage.getItem('invasionData');
       
-      // Se já estiver logado e tiver dados, vai direto para o feed
-      if (isLoggedIn && storedData) {
-        const data = JSON.parse(storedData);
-        if (data.profileData) {
-          setProfileData(data.profileData);
-          setSuggestedProfiles(data.suggestedProfiles || []);
-          setPosts(data.posts || []);
-          setLocations(data.locations || []);
-          
-          if (!sessionStorage.getItem('invasionEndTime')) {
-            const endTime = Date.now() + 90 * 1000;
-            sessionStorage.setItem('invasionEndTime', endTime.toString());
-          }
-          
-          setStage('feed_locked');
-          return;
-        }
-      }
-
       let dataFromNav;
       if (location.state?.profileData) {
         dataFromNav = location.state;
@@ -94,23 +85,21 @@ const InvasionSimulationPage: React.FC = () => {
           const { suggestions: extraSuggestions, posts: fetchedPosts } = await fetchFullInvasionData(targetProfileData);
 
           let finalSuggestions = dataFromNav.suggestions || [];
-          if (finalSuggestions.length === 0) finalSuggestions = extraSuggestions;
-
-          if (finalSuggestions.length === 0) {
-              const shuffledNames = [...MOCK_SUGGESTION_NAMES].sort(() => 0.5 - Math.random());
-              finalSuggestions = shuffledNames.slice(0, 15).map((name) => ({
-                username: name.toLowerCase().replace(' ', '') + Math.floor(Math.random() * 100),
-                fullName: name,
-                profile_pic_url: '/perfil.jpg', 
-              }));
+          if (finalSuggestions.length === 0 && extraSuggestions.length > 0) {
+            finalSuggestions = extraSuggestions;
           }
 
-          setSuggestedProfiles(finalSuggestions);
-          setPosts(fetchedPosts);
+          if (finalSuggestions.length > 0) {
+            setSuggestedProfiles(finalSuggestions);
+          }
+          
+          if (fetchedPosts.length > 0) {
+            setPosts(fetchedPosts);
+          }
 
           sessionStorage.setItem('invasionData', JSON.stringify({
             profileData: targetProfileData,
-            suggestedProfiles: finalSuggestions,
+            suggestedProfiles: finalSuggestions.length > 0 ? finalSuggestions : suggestedProfiles,
             posts: fetchedPosts,
             userCity: userCity,
             locations: cityList,
@@ -120,10 +109,8 @@ const InvasionSimulationPage: React.FC = () => {
         }
       };
 
-      // Dispara o carregamento em background sem dar await
       startBackgroundLoading();
 
-      // Aguarda apenas um pequeno tempo de loader para transição visual
       await new Promise(resolve => setTimeout(resolve, 800));
 
       if (!sessionStorage.getItem('invasionEndTime')) {
@@ -131,14 +118,17 @@ const InvasionSimulationPage: React.FC = () => {
         sessionStorage.setItem('invasionEndTime', endTime.toString());
       }
 
-      // VAI PARA A SIMULAÇÃO IMEDIATAMENTE
-      setStage('login_attempt');
+      if (isLoggedIn) {
+        setStage('feed_locked');
+      } else {
+        setStage('login_attempt');
+      }
     };
 
     if (stage === 'loading') {
       loadAllDataAndProceed();
     }
-  }, [location.state, navigate, stage, isLoggedIn]);
+  }, [location.state, navigate, stage, isLoggedIn, suggestedProfiles]);
 
   const handleLoginSuccess = useCallback(() => {
     login();
@@ -182,7 +172,7 @@ const InvasionSimulationPage: React.FC = () => {
           <InstagramFeedMockup 
             profileData={profileData} 
             suggestedProfiles={suggestedProfiles} 
-            posts={posts || []}
+            posts={posts}
             locations={locations}
             onLockedFeatureClick={handleLockedFeatureClick}
           />
@@ -193,7 +183,7 @@ const InvasionSimulationPage: React.FC = () => {
             <InstagramFeedContent 
               profileData={profileData} 
               suggestedProfiles={suggestedProfiles} 
-              posts={posts || []}
+              posts={posts}
               locations={locations}
               onLockedFeatureClick={handleLockedFeatureClick}
             />
