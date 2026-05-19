@@ -3,30 +3,26 @@ import { cn } from '../lib/utils';
 
 const CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+=-[]{}|;:,.<>?/~`';
 const SPYGRAM = 'SPYGRAM';
-const COLUMN_COUNT = 40; // Aumentado para cobrir a largura, mas o espaçamento será maior
-const FONT_SIZE = 20; // Aumentado para maior espaçamento vertical
+const COLUMN_COUNT = 40; 
+const FONT_SIZE = 20; 
 const RAIN_LENGTH = 100; 
 
-// Helper function to generate a single styled column as an array of React nodes
 const generateStyledColumn = (columnIndex: number) => {
   const characters = [];
   let spygramIndex = 0;
-  // Insere SPYGRAM em colunas a cada 7 colunas para que apareça periodicamente
   const shouldInsertSpygram = columnIndex % 7 === 0; 
   
   for (let i = 0; i < RAIN_LENGTH; i++) {
     let char = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
-    // Cor base de contraste extremamente baixo (quase preto)
-    let className = 'text-gray-950'; 
+    // Cor base ajustada para ser visível mas sutil (cinza escuro em vez de quase preto)
+    let className = 'text-white/5'; 
 
-    // Lógica para inserir e destacar letras SPYGRAM
     if (shouldInsertSpygram && spygramIndex < SPYGRAM.length && i % 10 === 0) { 
       char = SPYGRAM[spygramIndex];
-      className = 'text-purple-500 font-bold'; // Destaque roxo
+      className = 'text-purple-500/40 font-bold'; 
       spygramIndex++;
-    } else if (Math.random() < 0.02) { // Reduzida a chance de destaque aleatório
-      // Destaque aleatório de outros caracteres com cores do tema (roxo/magenta)
-      className = Math.random() > 0.5 ? 'text-purple-700' : 'text-pink-700';
+    } else if (Math.random() < 0.05) { 
+      className = Math.random() > 0.5 ? 'text-purple-900/30' : 'text-pink-900/30';
     }
 
     characters.push(
@@ -42,7 +38,6 @@ const MatrixRainBackground: React.FC = () => {
   const columnData = useMemo(() => {
     return Array(COLUMN_COUNT).fill(0).map((_, index) => ({
       content: generateStyledColumn(index),
-      // Mantendo a velocidade lenta
       duration: Math.random() * 15 + 10, 
       delay: Math.random() * -10, 
     }));
@@ -59,7 +54,7 @@ const MatrixRainBackground: React.FC = () => {
           position: absolute;
           top: 0; 
           font-size: ${FONT_SIZE}px;
-          line-height: ${FONT_SIZE}px; /* Garante o espaçamento vertical */
+          line-height: ${FONT_SIZE}px;
           white-space: pre;
           animation-name: matrix-fall;
           animation-timing-function: linear;
@@ -67,10 +62,13 @@ const MatrixRainBackground: React.FC = () => {
           opacity: 0.8; 
           display: flex;
           flex-direction: column;
-          filter: blur(3px); /* Adicionado blur para melhorar legibilidade do conteúdo superior */
+          filter: blur(1px);
         }
       `}</style>
-      <div className="fixed inset-0 overflow-hidden z-0 bg-black">
+      <div className="fixed inset-0 overflow-hidden z-0 bg-[#050505]">
+        {/* Gradiente de profundidade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 via-transparent to-black z-10 pointer-events-none"></div>
+        
         {columnData.map((col, index) => (
           <div
             key={index}

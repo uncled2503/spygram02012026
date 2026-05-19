@@ -66,7 +66,6 @@ const MainAppContent: React.FC = () => {
     setError(null);
     
     try {
-      // RESET TOTAL PARA NOVA PESQUISA
       logout(); 
       sessionStorage.removeItem('invasionEndTime');
       sessionStorage.removeItem('invasionData');
@@ -83,8 +82,6 @@ const MainAppContent: React.FC = () => {
       setConfirmedSuggestions(fetchResult.suggestions);
       setConfirmedPosts(fetchResult.posts);
 
-      // trackLead REMOVIDO DAQUI para salvar somente no checkout final
-
     } catch (err) {
       setError("Sistema sobrecarregado, tente novamente mais tarde");
     } finally {
@@ -100,14 +97,13 @@ const MainAppContent: React.FC = () => {
         posts: confirmedPosts,
       };
       sessionStorage.setItem('invasionData', JSON.stringify(invasionData));
-      // trackLead REMOVIDO DAQUI
       navigate('/instagram', { state: invasionData });
     }
   }, [confirmedProfileData, confirmedSuggestions, confirmedPosts, navigate]);
 
   if (confirmedProfileData) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative z-10">
+      <div className="min-h-screen bg-transparent flex items-center justify-center p-4 relative z-10">
         <ProfileConfirmationCard
           profileData={confirmedProfileData}
           onConfirm={handleConfirmInvasion}
@@ -118,22 +114,32 @@ const MainAppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="min-h-screen bg-transparent relative overflow-hidden">
+      {/* Luzes de fundo para tirar o preto total */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[120px] rounded-full z-10 pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-pink-600/10 blur-[120px] rounded-full z-10 pointer-events-none" />
+
       <ProgressBar progress={progressBarProgress} isVisible={isLoading} />
+      
       <div className="relative z-20 text-white flex flex-col items-center px-4 pt-12 pb-8 w-full"> 
         <header className="text-center mb-8 w-full max-xl">
-          <img src="/spygram_transparentebranco.png" alt="Logo" className="h-24 mx-auto mb-6" />
-          <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 text-transparent bg-clip-text uppercase">SpyGram</h1>
-          <p className="text-xl font-bold">ACESSE O <span className="text-pink-500">INSTAGRAM</span> DE QUALQUER PESSOA <span className="text-yellow-500">SEM SENHA</span></p>
+          <img src="/spygram_transparentebranco.png" alt="Logo" className="h-24 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
+          <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 text-transparent bg-clip-text uppercase tracking-tighter">SpyGram</h1>
+          <p className="text-xl font-bold uppercase tracking-tight">ACESSE O <span className="text-pink-500">INSTAGRAM</span> DE QUALQUER PESSOA <span className="text-yellow-500">SEM SENHA</span></p>
         </header>
-        <main className="w-full flex flex-col items-center">
+
+        <main className="w-full flex flex-col items-center max-w-md">
           <CustomSearchBar query={searchQuery} setQuery={setSearchQuery} isLoading={isLoading} />
           <InvasionCounter />
-          <div className="mt-6"><ConsentCheckbox checked={hasConsented} onChange={setHasConsented} /></div>
-          <div className="mt-6"><SparkleButton onClick={handleSearch} disabled={isLoading || !hasConsented}>{isLoading ? 'Buscando...' : 'Invadir Conta'}</SparkleButton></div>
-          <div className="w-full mt-4">{error && <ErrorMessage message={error} />}</div>
+          <div className="mt-8"><ConsentCheckbox checked={hasConsented} onChange={setHasConsented} /></div>
+          <div className="mt-8 w-full"><SparkleButton onClick={handleSearch} disabled={isLoading || !hasConsented}>{isLoading ? 'Infiltrando...' : 'Invadir Conta Agora'}</SparkleButton></div>
+          <div className="w-full mt-6">{error && <ErrorMessage message={error} />}</div>
         </main>
-        <footer className="mt-16 flex items-center gap-1 text-gray-500 text-sm"><Lock className="w-4 h-4 text-green-500" /> SSL Verificado</footer>
+
+        <footer className="mt-16 flex items-center gap-2 text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+          <Lock className="w-3 h-3 text-green-500" /> 
+          Conexão Criptografada AES-256
+        </footer>
       </div>
     </div>
   );
