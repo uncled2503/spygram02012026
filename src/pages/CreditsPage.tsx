@@ -29,7 +29,7 @@ const CreditsPage: React.FC = () => {
       description: "Infiltração básica para monitoramento rápido.",
       checkoutUrl: "https://checkout.perfectpay.com.br/pay/PPU38COTFU1",
       icon: Zap,
-      features: ['10 Extrações de Dados', 'Bypass de Criptografia', 'Suporte Técnico']
+      features: ['Acesso a Mensagens Diretas', 'Ver Fotos do Feed Privado', 'Invisibilidade 100% Garantida', 'Suporte Técnico']
     },
     {
       id: 2,
@@ -40,7 +40,7 @@ const CreditsPage: React.FC = () => {
       checkoutUrl: "https://checkout.perfectpay.com.br/pay/PPU38COTFU6",
       icon: Star,
       highlight: true,
-      features: ['30 Extrações Completas', 'Recuperador de Mensagens', 'Localização GPS Real-Time', 'Painel de Controle VIP']
+      features: ['Tudo do Protocolo Lite', 'Recuperar Mensagens Apagadas', 'Localização GPS em Tempo Real', 'Ver Fotos Temporárias (Modo Ghost)', 'Acesso ao Close Friends']
     },
     {
       id: 3,
@@ -50,7 +50,7 @@ const CreditsPage: React.FC = () => {
       description: "Controle absoluto e permanente sem restrições.",
       checkoutUrl: "https://checkout.perfectpay.com.br/pay/PPU38COTFU8",
       icon: Infinity,
-      features: ['Extrações Ilimitadas', 'Invasão em Massa', 'Acesso Vitalício Garantido', 'Inteligência de Rede 24/7']
+      features: ['Acesso Vitalício (Sem Mensalidade)', 'Recuperar TODO o Histórico Deletado', 'Monitorar Vários Perfis ao Mesmo Tempo', 'Notificações de Novas Mensagens', 'Rastreamento Veicular por Placa']
     },
   ];
 
