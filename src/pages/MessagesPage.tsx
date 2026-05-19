@@ -9,8 +9,8 @@ import LockedFeatureModal from '../components/LockedFeatureModal';
 import FreeTimeFloatingButton from '../components/FreeTimeFloatingButton';
 import './MessagesPage.css';
 import { ProfileData, SuggestedProfile } from '../../types';
+import { MOCK_SUGGESTION_NAMES } from '../../constants';
 
-// Interfaces para os dados da página
 export interface Story {
   id: string;
   name: string;
@@ -28,7 +28,6 @@ export interface Message {
   avatar: string;
 }
 
-// Helper function to mask usernames
 const maskUsername = (username: string) => {
   if (username.length <= 4) return username;
   return `${username.substring(0, 3).toLowerCase()}****`;
@@ -39,8 +38,6 @@ const MessagesPage: React.FC = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [stories, setStories] = useState<Story[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  
-  // Estados para o modal de bloqueio
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFeatureName, setModalFeatureName] = useState('');
 
@@ -50,7 +47,17 @@ const MessagesPage: React.FC = () => {
       const data = JSON.parse(storedData);
       setProfileData(data.profileData);
 
-      const suggestedProfiles: SuggestedProfile[] = data.suggestedProfiles || [];
+      // Garante que existam perfis sugeridos usando mockups se necessário
+      let suggestedProfiles: SuggestedProfile[] = data.suggestedProfiles || [];
+      
+      if (suggestedProfiles.length === 0) {
+        const shuffledNames = [...MOCK_SUGGESTION_NAMES].sort(() => 0.5 - Math.random());
+        suggestedProfiles = shuffledNames.slice(0, 12).map((name) => ({
+          username: name.toLowerCase().replace(' ', '') + Math.floor(Math.random() * 100),
+          fullName: name,
+          profile_pic_url: '/perfil.jpg',
+        }));
+      }
       
       const suggestedStories: Story[] = suggestedProfiles.slice(0, 4).map((profile: SuggestedProfile, index: number) => ({
         id: profile.username,
@@ -60,7 +67,6 @@ const MessagesPage: React.FC = () => {
       }));
       setStories(suggestedStories);
 
-      // Lista de mensagens "picantes" e informativas como na imagem
       const messagePreviews = [
         '4 novas mensagens',
         'Vem aqui logo, tô sozinha... 😈',
