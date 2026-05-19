@@ -67,6 +67,7 @@ const MatrixRainBackground: React.FC = () => {
           opacity: 0.8; 
           display: flex;
           flex-direction: column;
+          filter: blur(3px); /* Adicionado blur para melhorar legibilidade do conteúdo superior */
         }
       `}</style>
       <div className="fixed inset-0 overflow-hidden z-0 bg-black">
