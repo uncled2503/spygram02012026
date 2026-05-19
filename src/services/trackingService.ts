@@ -27,6 +27,12 @@ export const trackLead = async (data: {
 
   try {
     const userAgent = navigator.userAgent;
+    
+    // Se o status for 'pesquisou', limpamos o ID da sessão para forçar um novo INSERT
+    if (data.status === 'pesquisou') {
+      sessionStorage.removeItem('current_lead_id');
+    }
+
     let existingLeadId = sessionStorage.getItem('current_lead_id');
     
     // Tenta enriquecer os dados com o que já temos na sessão se estiverem faltando
@@ -47,7 +53,7 @@ export const trackLead = async (data: {
       delete updateData.amount;
     }
 
-    // 3. Tenta ATUALIZAR o lead existente
+    // 3. Tenta ATUALIZAR o lead existente se houver um ID ativo na sessão
     if (existingLeadId) {
       const { error, count } = await supabase
         .from('leads')
@@ -63,14 +69,13 @@ export const trackLead = async (data: {
       }
 
       if (!error && count === 0) {
-        localStorage.setItem('spygram_banned_session', 'true');
+        // Se o ID existia mas não foi encontrado, limpa para criar um novo
         sessionStorage.removeItem('current_lead_id');
-        isTrackingInProgress = false;
-        return;
+        existingLeadId = null;
       }
     }
 
-    // 4. Cria um novo se não houver ID
+    // 4. Cria um novo registro (Sempre cai aqui se for status 'pesquisou' ou se for o primeiro acesso)
     const { data: newLead, error: insertError } = await supabase
       .from('leads')
       .insert([{
