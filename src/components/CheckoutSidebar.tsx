@@ -6,8 +6,8 @@ interface CheckoutSidebarProps {
 
 const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ total }) => {
   return (
-    <aside className="hidden lg:block w-80 flex-shrink-0">
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden sticky top-24">
+    <aside className="hidden lg:block w-80 flex-shrink-0 sticky top-24 h-fit">
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
         <div className="bg-gray-200/50 py-3 px-6 text-center">
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Resumo da Compra</span>
         </div>
