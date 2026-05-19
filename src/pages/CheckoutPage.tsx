@@ -253,14 +253,8 @@ const CheckoutPage: React.FC = () => {
               
               <div className="p-6">
                   <div className="flex flex-wrap gap-2 mb-6">
-                    <div className="flex-1 min-w-[100px] p-2 border border-gray-200 rounded-xl text-[9px] font-black uppercase flex flex-col items-center gap-1 text-gray-400 opacity-50 cursor-not-allowed">
-                       <CreditCard size={16} /> Cartão
-                    </div>
-                    <div className="flex-1 min-w-[100px] p-2 border border-gray-200 rounded-xl text-[9px] font-black uppercase flex flex-col items-center gap-1 text-gray-400 opacity-50 cursor-not-allowed">
-                       <FileText size={16} /> Boleto
-                    </div>
-                    <div className="flex-1 min-w-[100px] p-2 border-2 border-[#78cc6d] bg-green-50 rounded-xl text-[9px] font-black uppercase flex flex-col items-center gap-1 text-[#78cc6d]">
-                       <QrCode size={16} /> Pix
+                    <div className="w-full p-3 border-2 border-[#78cc6d] bg-green-50 rounded-xl text-[10px] font-black uppercase flex flex-col items-center gap-1 text-[#78cc6d]">
+                       <QrCode size={18} /> Pix
                     </div>
                   </div>
 
