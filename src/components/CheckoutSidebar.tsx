@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, BadgeCheck } from 'lucide-react';
 
 interface CheckoutSidebarProps {
   total: number;
@@ -56,9 +56,9 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ total }) => {
         </div>
       </div>
       
-      {/* Selo de Garantia Extra na Sidebar */}
+      {/* Selo de Garantia com Ícone Verde */}
       <div className="mt-6 p-6 bg-white/40 backdrop-blur-sm rounded-[2rem] border border-gray-100 flex items-center gap-4">
-        <img src="https://img.icons8.com/color/48/000000/guarantee.png" className="w-10 h-10 grayscale opacity-50" alt="Garantia" />
+        <BadgeCheck className="w-10 h-10 text-green-500 flex-shrink-0" />
         <p className="text-[9px] font-bold text-gray-400 uppercase leading-tight tracking-tight">
           Sua compra está protegida pela <span className="text-gray-600">Garantia de Satisfação de 7 dias</span>.
         </p>
