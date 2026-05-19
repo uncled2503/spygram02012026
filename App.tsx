@@ -13,6 +13,7 @@ import MessagesPage from '@/src/pages/MessagesPage';
 import ChatPage from '@/src/pages/ChatPage';
 import CheckoutPage from '@/src/pages/CheckoutPage';
 import AdminPage from '@/src/pages/AdminPage';
+import ResultadosPage from '@/src/pages/ResultadosPage'; // Importado
 import ProgressBar from '@/src/components/ProgressBar';
 import InvasionSimulationPage from '@/src/pages/InvasionSimulationPage';
 import InvasionConcludedPage from '@/src/pages/InvasionConcludedPage';
@@ -161,6 +162,7 @@ const App: React.FC = () => {
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/admin" element={<AdminProtectedRoute><AdminPage /></AdminProtectedRoute>} />
+          <Route path="/resultados" element={<ResultadosPage />} />
           <Route path="/instagram" element={<InvasionSimulationPage />} />
           <Route path="/invasion-concluded" element={<BackgroundLayout><InvasionConcludedPage /></BackgroundLayout>} />
           <Route path="/servers" element={<ProtectedRoute><BackgroundLayout><ServersPage /></BackgroundLayout></ProtectedRoute>} />
