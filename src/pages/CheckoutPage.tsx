@@ -264,9 +264,6 @@ const CheckoutPage: React.FC = () => {
              <img src="/banner-checkout-final.jpg" alt="Finalize sua compra" className="w-full h-auto block" />
           </div>
 
-          {/* Resumo da Compra Mobile (Substituiu o card simples) */}
-          <CheckoutSummaryMobile total={total} />
-
           {/* Form Grid Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Section 1: Dados Pessoais */}
@@ -367,6 +364,9 @@ const CheckoutPage: React.FC = () => {
                 </div>
              </div>
           </div>
+
+          {/* Resumo da Compra Mobile (Movido para o final da página conforme solicitado) */}
+          <CheckoutSummaryMobile total={total} />
 
         </div>
 
