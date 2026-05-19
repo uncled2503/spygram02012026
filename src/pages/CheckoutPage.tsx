@@ -237,9 +237,9 @@ const CheckoutPage: React.FC = () => {
                     <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">Telefone</label>
                     <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(21) 998510231" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
                   </div>
-                  <div className="space-y-1 md:hidden">
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
-                    <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
+                    <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="Digite seu documento" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
                   </div>
               </div>
             </div>
@@ -263,12 +263,6 @@ const CheckoutPage: React.FC = () => {
                         <p>01. Pagamento em segundos, sem complicações</p>
                         <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
                         <p>03. O PIX foi desenvolvido pelo Banco Central para facilitar suas compras e é 100% seguro.</p>
-                    </div>
-
-                    {/* CPF/CNPJ Input moved here for Desktop to match layout */}
-                    <div className="hidden md:block space-y-1 mt-4">
-                       <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
-                       <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="Digite seu documento" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
                     </div>
                   </div>
               </div>
