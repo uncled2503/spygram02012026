@@ -35,7 +35,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ total }) => {
           <div className="w-full space-y-4 pt-6 border-t border-gray-50">
             <div className="flex justify-between items-center text-[11px] font-medium text-gray-500">
               <span>Subtotal</span>
-              <span>R$ 29,90</span>
+              <span>R$ 1,00</span>
             </div>
             
             <div className="flex justify-between items-center text-[11px] font-medium text-gray-500">
