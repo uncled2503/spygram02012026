@@ -89,7 +89,7 @@ const MainAppContent: React.FC = () => {
       sessionStorage.removeItem('invasionEndTime');
       sessionStorage.removeItem('invasionData');
       sessionStorage.removeItem('current_lead_id');
-      localStorage.removeItem('spygram_banned_session'); // Permite um novo lead se for uma pesquisa nova e legítima
+      localStorage.removeItem('spygram_banned_session');
 
       const [fetchResult] = await Promise.all([
         fetchProfileData(searchQuery.trim()),
