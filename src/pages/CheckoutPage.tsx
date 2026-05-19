@@ -342,20 +342,6 @@ const CheckoutPage: React.FC = () => {
               </div>
            </div>
         </div>
-
-        <div className="text-center space-y-6">
-          <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-loose">
-            Esta compra será processada por: PerfectPay © 2024 - Todos os direitos reservados. <br />
-            * * Taxa de 2,99% a.m. <br />
-            Ao continuar nesta compra, você concorda com os Termos de Compra e Termos de Privacidade.
-          </p>
-          <div className="flex flex-col items-center gap-4">
-             <div className="bg-white border border-gray-200 px-6 py-3 rounded-xl shadow-sm">
-                <img src="https://static.reclameaqui.com.br/ra-hotsite/images/selo-ra-1000.png" alt="RA 1000" className="h-10" />
-             </div>
-             <p className="text-[8px] text-gray-400 font-bold uppercase">Ref: PPA22ZU8 • SN: 6A0BEB66D8980N</p>
-          </div>
-        </div>
       </div>
     </div>
   );
