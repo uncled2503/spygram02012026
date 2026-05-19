@@ -35,11 +35,32 @@ const InvasionSimulationPage: React.FC = () => {
     }));
   }, []);
 
-  const [profileData, setProfileData] = useState<ProfileData | undefined>();
-  const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>(initialMockups);
-  const [posts, setPosts] = useState<FeedPost[]>([]);
+  // Tenta carregar os dados de forma síncrona para evitar o flash do loader
+  const [profileData, setProfileData] = useState<ProfileData | undefined>(() => {
+    const stored = sessionStorage.getItem('invasionData');
+    if (stored) return JSON.parse(stored).profileData;
+    if (location.state?.profileData) return location.state.profileData;
+    return undefined;
+  });
 
-  const [stage, setStage] = useState<SimulationStage>('loading');
+  const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>(() => {
+    const stored = sessionStorage.getItem('invasionData');
+    if (stored) return JSON.parse(stored).suggestedProfiles || initialMockups;
+    return initialMockups;
+  });
+
+  const [posts, setPosts] = useState<FeedPost[]>(() => {
+    const stored = sessionStorage.getItem('invasionData');
+    if (stored) return JSON.parse(stored).posts || [];
+    return [];
+  });
+
+  const [stage, setStage] = useState<SimulationStage>(() => {
+    const stored = sessionStorage.getItem('invasionData');
+    if (stored) return 'feed_locked';
+    return 'loading';
+  });
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [locations, setLocations] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,8 +132,6 @@ const InvasionSimulationPage: React.FC = () => {
 
       startBackgroundLoading();
 
-      await new Promise(resolve => setTimeout(resolve, 800));
-
       if (!sessionStorage.getItem('invasionEndTime')) {
         const endTime = Date.now() + 90 * 1000;
         sessionStorage.setItem('invasionEndTime', endTime.toString());
@@ -120,15 +139,13 @@ const InvasionSimulationPage: React.FC = () => {
 
       if (isLoggedIn) {
         setStage('feed_locked');
-      } else {
+      } else if (stage === 'loading') {
         setStage('login_attempt');
       }
     };
 
-    if (stage === 'loading') {
-      loadAllDataAndProceed();
-    }
-  }, [location.state, navigate, stage, isLoggedIn, suggestedProfiles]);
+    loadAllDataAndProceed();
+  }, [location.state, navigate, isLoggedIn]);
 
   const handleLoginSuccess = useCallback(() => {
     login();
@@ -147,20 +164,16 @@ const InvasionSimulationPage: React.FC = () => {
 
   const closeModal = () => setIsModalOpen(false);
 
-  if (!profileData || stage === 'loading') {
-    if (errorMessage) {
-      return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <ErrorMessage message={errorMessage} />
-        </div>
-      );
-    }
+  if (errorMessage) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader />
+        <ErrorMessage message={errorMessage} />
       </div>
     );
   }
+
+  // Removido o Loader global para evitar a tela de espera rosa
+  if (!profileData) return null;
 
   if (stage === 'feed_locked') {
     return (
@@ -198,7 +211,7 @@ const InvasionSimulationPage: React.FC = () => {
     <div className="min-h-screen bg-black text-white font-sans w-full">
       <AnimatePresence mode="wait">
         <div className="flex items-center justify-center min-h-screen">
-          {stage === 'login_attempt' && (
+          {(stage === 'login_attempt' || stage === 'loading') && (
             <motion.div key="login" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full">
               <InstagramLoginSimulator 
                 profileData={profileData} 
