@@ -21,6 +21,11 @@ const getProxyImageUrlLight = (imageUrl: string | undefined): string => {
     return `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&w=80&h=80&fit=cover&q=50`;
 };
 
+// Função para embaralhar arrays
+const shuffleArray = <T>(array: T[]): T[] => {
+    return [...array].sort(() => Math.random() - 0.5);
+};
+
 const simpleFetch = async (campo: string, username: string): Promise<any> => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -76,20 +81,18 @@ export async function fetchProfileData(username: string): Promise<FetchResult> {
             // Lógica de Extração de Sugestões (Círculo Íntimo)
             let suggestions: SuggestedProfile[] = [];
             
-            // 1. Tenta pegar facepile (mutuals)
             const facepile = user.profile_context_facepile_users;
-            // 2. Fallback para chaining_results (perfis relacionados)
             const chaining = user.chaining_results || user.chaining_suggestions;
 
             const sourceArray = (Array.isArray(facepile) && facepile.length > 0) ? facepile : chaining;
 
             if (Array.isArray(sourceArray)) {
-                suggestions = sourceArray.map((p: any) => ({
+                suggestions = shuffleArray(sourceArray.map((p: any) => ({
                     username: p.username,
                     profile_pic_url: getProxyImageUrlLight(p.profile_pic_url),
                     fullName: p.full_name,
                     is_private: p.is_private
-                })).reverse(); // INVERTIDO: Do último para o primeiro
+                })));
             }
 
             return { profile, suggestions, posts: [] };
@@ -110,12 +113,12 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
         let suggestions: SuggestedProfile[] = [];
         const suggestionsData = suggestionsResponse?.results?.[0]?.data;
         if (Array.isArray(suggestionsData)) {
-            suggestions = suggestionsData.map((p: any) => ({
+            suggestions = shuffleArray(suggestionsData.map((p: any) => ({
                 username: p.username || '',
                 fullName: p.full_name || p.username,
                 profile_pic_url: getProxyImageUrlLight(p.profile_pic_url),
                 is_private: p.is_private,
-            })).reverse(); // INVERTIDO: Do último para o primeiro
+            })));
         }
 
         const publicProfiles = suggestions.filter(p => !p.is_private).slice(0, 3);
