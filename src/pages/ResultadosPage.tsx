@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Search, Code, User, BarChart3, Database } from 'lucide-react';
+import { Search, Code, User, BarChart3, Database, Users } from 'lucide-react';
 import BackgroundLayout from '../components/BackgroundLayout';
 import { fetchProfileData } from '../services/profileService';
 import Loader from '../components/Loader';
@@ -23,7 +23,6 @@ const ResultadosPage: React.FC = () => {
     setResult(null);
 
     try {
-      // Usamos o serviço que já bate na Edge Function configurada com a sua chave
       const data = await fetchProfileData(username.trim());
       setResult(data);
     } catch (err: any) {
@@ -56,7 +55,7 @@ const ResultadosPage: React.FC = () => {
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 type="text"
-                placeholder="Digite o username para teste (ex: instagram)"
+                placeholder="Ex: biel_sfm"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 text-sm text-white focus:border-purple-500 outline-none transition-all"
@@ -67,7 +66,7 @@ const ResultadosPage: React.FC = () => {
               disabled={isLoading}
               className="px-8 bg-purple-600 hover:bg-purple-700 text-white font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
             >
-              {isLoading ? 'Buscando...' : 'Testar'}
+              {isLoading ? 'Buscando...' : 'Testar API'}
             </button>
           </form>
 
@@ -76,7 +75,7 @@ const ResultadosPage: React.FC = () => {
           {isLoading && (
             <div className="mt-12 flex flex-col items-center gap-4">
               <Loader />
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest animate-pulse">Processando requisição...</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest animate-pulse">Consultando RapidAPI...</p>
             </div>
           )}
 
@@ -84,14 +83,14 @@ const ResultadosPage: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-8 space-y-6"
+              className="mt-8 space-y-8"
             >
-              {/* Resumo do Perfil Encontrado */}
+              {/* Resumo do Perfil */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center">
-                  <User className="w-5 h-5 text-blue-400 mb-2" />
+                  <img src={result.profile.profilePicUrl} className="w-16 h-16 rounded-full mb-3 border-2 border-purple-500 object-cover" alt="Profile" />
                   <p className="text-xl font-black text-white">@{result.profile.username}</p>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase">Username</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Perfil Localizado</p>
                 </div>
                 <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center">
                   <BarChart3 className="text-pink-500 mb-2" />
@@ -99,19 +98,45 @@ const ResultadosPage: React.FC = () => {
                   <p className="text-[10px] text-gray-500 font-bold uppercase">Seguidores</p>
                 </div>
                 <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center">
-                  <Code className="text-yellow-500 mb-2" />
-                  <p className="text-xl font-black text-white">{result.profile.isPrivate ? 'Sim' : 'Não'}</p>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase">Privado</p>
+                  <Users className="text-blue-500 mb-2" />
+                  <p className="text-xl font-black text-white">{result.suggestions.length}</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Perfis em Comum</p>
                 </div>
               </div>
 
-              {/* Visualizador de JSON Raw */}
-              <div className="mt-8">
+              {/* PERFIS EM COMUM (Facepile) */}
+              <div>
+                <div className="flex items-center gap-2 mb-4 px-2">
+                  <Users size={18} className="text-blue-400" />
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Círculo Íntimo (Perfis em Comum)</h3>
+                </div>
+                
+                {result.suggestions.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {result.suggestions.map((p: any, i: number) => (
+                      <div key={i} className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                        <img src={p.profile_pic_url} className="w-10 h-10 rounded-full border border-blue-500/50" alt={p.username} />
+                        <div>
+                          <p className="text-xs font-black text-white">@{p.username}</p>
+                          <p className="text-[9px] text-gray-500 uppercase font-bold">{p.fullName || 'User'}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 bg-white/5 border border-dashed border-white/10 rounded-3xl text-center">
+                    <p className="text-xs text-gray-500 uppercase font-bold">Nenhum perfil em comum retornado para esta conta.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* JSON Raw */}
+              <div>
                 <div className="flex items-center gap-2 mb-4 px-2">
                   <Code size={16} className="text-gray-500" />
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Resposta Raw da API (JSON)</h3>
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Resposta Raw (JSON)</h3>
                 </div>
-                <div className="bg-black/60 rounded-3xl p-6 border border-white/5 font-mono text-[11px] overflow-x-auto text-green-400/80 leading-relaxed shadow-inner">
+                <div className="bg-black/60 rounded-3xl p-6 border border-white/5 font-mono text-[11px] overflow-x-auto text-green-400/80 leading-relaxed max-h-80 shadow-inner">
                   <pre>{JSON.stringify(result, null, 2)}</pre>
                 </div>
               </div>
