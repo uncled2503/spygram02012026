@@ -28,7 +28,6 @@ const CheckoutPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(240); // 4 minutos
   const [isProcessing, setIsProcessing] = useState(false);
   const [pixData, setPixData] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'boleto' | 'picpay'>('pix');
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -80,11 +79,6 @@ const CheckoutPage: React.FC = () => {
     if (!formData.nome || !formData.email || !formData.documento) {
         toast.error("Preencha todos os dados.");
         return;
-    }
-
-    if (paymentMethod !== 'pix') {
-      window.location.href = CHECKOUT_URL;
-      return;
     }
 
     setIsProcessing(true);
@@ -258,38 +252,30 @@ const CheckoutPage: React.FC = () => {
                 <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Pagamento</h3>
              </div>
              
-             {/* Payment Tabs */}
+             {/* Payment Selection (Only PIX) */}
              <div className="p-6">
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                   <button onClick={() => setPaymentMethod('card')} className={`flex items-center gap-2 p-3 border-2 rounded-xl text-[10px] font-bold uppercase transition-all ${paymentMethod === 'card' ? 'border-[#78cc6d] bg-green-50' : 'border-gray-100'}`}>
-                      <CreditCard size={18} className={paymentMethod === 'card' ? 'text-[#78cc6d]' : 'text-gray-400'} /> Cartão de Crédito
-                   </button>
-                   <button onClick={() => setPaymentMethod('boleto')} className={`flex items-center gap-2 p-3 border-2 rounded-xl text-[10px] font-bold uppercase transition-all ${paymentMethod === 'boleto' ? 'border-[#78cc6d] bg-green-50' : 'border-gray-100'}`}>
-                      <FileText size={18} className={paymentMethod === 'boleto' ? 'text-[#78cc6d]' : 'text-gray-400'} /> Boleto
-                   </button>
-                   <button onClick={() => setPaymentMethod('pix')} className={`flex items-center justify-between p-3 border-2 rounded-xl text-[10px] font-bold uppercase transition-all ${paymentMethod === 'pix' ? 'border-[#78cc6d] bg-green-50' : 'border-gray-100'}`}>
-                      <div className="flex items-center gap-2"><QrCode size={18} className={paymentMethod === 'pix' ? 'text-[#78cc6d]' : 'text-gray-400'} /> Pix</div>
-                      {paymentMethod === 'pix' && <Check size={14} className="text-[#78cc6d]" />}
-                   </button>
-                   <button onClick={() => setPaymentMethod('picpay')} className={`flex items-center gap-2 p-3 border-2 rounded-xl text-[10px] font-bold uppercase transition-all ${paymentMethod === 'picpay' ? 'border-[#78cc6d] bg-green-50' : 'border-gray-100'}`}>
-                      <img src="https://logodownload.org/wp-content/uploads/2018/05/picpay-logo.png" className="h-4" alt="PicPay" /> PicPay
-                   </button>
+                <div className="flex justify-center mb-6">
+                   <div className="flex items-center justify-between w-full max-w-sm p-4 border-2 border-[#78cc6d] bg-green-50 rounded-2xl text-[12px] font-black uppercase shadow-sm">
+                      <div className="flex items-center gap-3">
+                         <QrCode size={22} className="text-[#78cc6d]" />
+                         <span>Pix</span>
+                      </div>
+                      <Check size={18} className="text-[#78cc6d]" />
+                   </div>
                 </div>
 
                 {/* PIX Instructions */}
-                {paymentMethod === 'pix' && (
-                  <div className="space-y-4 mb-6">
-                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-[11px] text-gray-500 space-y-3">
-                        <p>01. Pagamento em segundos, sem complicações</p>
-                        <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
-                        <p>03. O PIX foi desenvolvido pelo Banco Central para facilitar suas compras e é 100% seguro.</p>
-                     </div>
-                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
-                        <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
-                     </div>
-                  </div>
-                )}
+                <div className="space-y-4 mb-6">
+                   <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-[11px] text-gray-500 space-y-3">
+                      <p>01. Pagamento em segundos, sem complicações</p>
+                      <p>02. Basta escanear, com o aplicativo do seu banco, o QRCode que iremos gerar sua compra</p>
+                      <p>03. O PIX foi desenvolvido pelo Banco Central para facilitar suas compras e é 100% seguro.</p>
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">CPF ou CNPJ</label>
+                      <input type="text" name="documento" value={formData.documento} onChange={handleChange} placeholder="CPF ou CNPJ" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#78cc6d] outline-none transition-all" />
+                   </div>
+                </div>
              </div>
           </div>
 
