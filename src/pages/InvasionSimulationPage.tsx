@@ -76,50 +76,54 @@ const InvasionSimulationPage: React.FC = () => {
       const targetProfileData = dataFromNav.profileData;
       setProfileData(targetProfileData);
 
-      // Inicia busca de localização e posts em background
+      // Inicia busca de localização e posts em background (NÃO AGUARDAR)
       const startBackgroundLoading = async () => {
-        let userCity = 'São Paulo';
-        let cityList: string[] = [];
-        
         try {
-          const locationData = await getUserLocation();
-          cityList = getCitiesByState(locationData.city, locationData.state);
-          userCity = locationData.city;
-        } catch (e) {
-          cityList = getCitiesByState('São Paulo', 'São Paulo');
+          let userCity = 'São Paulo';
+          let cityList: string[] = [];
+          
+          try {
+            const locationData = await getUserLocation();
+            cityList = getCitiesByState(locationData.city, locationData.state);
+            userCity = locationData.city;
+          } catch (e) {
+            cityList = getCitiesByState('São Paulo', 'São Paulo');
+          }
+          setLocations(cityList);
+
+          const { suggestions: extraSuggestions, posts: fetchedPosts } = await fetchFullInvasionData(targetProfileData);
+
+          let finalSuggestions = dataFromNav.suggestions || [];
+          if (finalSuggestions.length === 0) finalSuggestions = extraSuggestions;
+
+          if (finalSuggestions.length === 0) {
+              const shuffledNames = [...MOCK_SUGGESTION_NAMES].sort(() => 0.5 - Math.random());
+              finalSuggestions = shuffledNames.slice(0, 15).map((name) => ({
+                username: name.toLowerCase().replace(' ', '') + Math.floor(Math.random() * 100),
+                fullName: name,
+                profile_pic_url: '/perfil.jpg', 
+              }));
+          }
+
+          setSuggestedProfiles(finalSuggestions);
+          setPosts(fetchedPosts);
+
+          sessionStorage.setItem('invasionData', JSON.stringify({
+            profileData: targetProfileData,
+            suggestedProfiles: finalSuggestions,
+            posts: fetchedPosts,
+            userCity: userCity,
+            locations: cityList,
+          }));
+        } catch (error) {
+          console.error("Erro silencioso no background loading:", error);
         }
-        setLocations(cityList);
-
-        const { suggestions: extraSuggestions, posts: fetchedPosts } = await fetchFullInvasionData(targetProfileData);
-
-        let finalSuggestions = dataFromNav.suggestions || [];
-        if (finalSuggestions.length === 0) finalSuggestions = extraSuggestions;
-
-        if (finalSuggestions.length === 0) {
-            const shuffledNames = [...MOCK_SUGGESTION_NAMES].sort(() => 0.5 - Math.random());
-            finalSuggestions = shuffledNames.slice(0, 15).map((name) => ({
-              username: name.toLowerCase().replace(' ', '') + Math.floor(Math.random() * 100),
-              fullName: name,
-              profile_pic_url: '/perfil.jpg', 
-            }));
-        }
-
-        setSuggestedProfiles(finalSuggestions);
-        setPosts(fetchedPosts);
-
-        sessionStorage.setItem('invasionData', JSON.stringify({
-          profileData: targetProfileData,
-          suggestedProfiles: finalSuggestions,
-          posts: fetchedPosts,
-          userCity: userCity,
-          locations: cityList,
-        }));
       };
 
-      // Dispara o carregamento em background sem dar await no processo completo
+      // Dispara o carregamento em background sem dar await
       startBackgroundLoading();
 
-      // Aguarda apenas um pequeno tempo de loader para transição suave
+      // Aguarda apenas um pequeno tempo de loader para transição visual
       await new Promise(resolve => setTimeout(resolve, 800));
 
       if (!sessionStorage.getItem('invasionEndTime')) {
@@ -127,6 +131,7 @@ const InvasionSimulationPage: React.FC = () => {
         sessionStorage.setItem('invasionEndTime', endTime.toString());
       }
 
+      // VAI PARA A SIMULAÇÃO IMEDIATAMENTE
       setStage('login_attempt');
     };
 
