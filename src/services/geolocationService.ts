@@ -47,14 +47,14 @@ function shuffleArray(array: any[]): any[] {
 
 export const getUserLocation = async (): Promise<LocationData> => {
   try {
-    const response = await fetch('http://ip-api.com/json/?fields=city,country,regionName,query');
+    const response = await fetch('https://ipapi.co/json/');
     if (!response.ok) throw new Error('Failed to fetch location data');
     const data = await response.json();
     return {
       city: data.city || 'São Paulo',
-      country: data.country || 'Brazil',
-      state: data.regionName || 'São Paulo',
-      ip: data.query || '0.0.0.0'
+      country: data.country_name || 'Brazil',
+      state: data.region || 'São Paulo',
+      ip: data.ip || '0.0.0.0'
     };
   } catch (error) {
     console.error('Error fetching user location:', error);
