@@ -133,20 +133,34 @@ const MainAppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-transparent">
       <ProgressBar progress={progressBarProgress} isVisible={isLoading} />
-      <div className="relative z-20 text-white flex flex-col items-center px-4 pt-12 pb-8 w-full"> 
-        <header className="text-center mb-8 w-full max-xl flex flex-col items-center">
-          <img src="/spygram_transparentebranco.png" alt="Logo Text" className="h-16 mx-auto mb-4" />
-          <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 text-transparent bg-clip-text uppercase">SpyGram</h1>
-          <p className="text-xl font-bold">ACESSE O <span className="text-pink-500">INSTAGRAM</span> DE QUALQUER PESSOA <span className="text-yellow-500">SEM SENHA</span></p>
+      <div className="relative z-20 text-white flex flex-col items-center px-4 pt-12 pb-8 w-full max-w-[450px] mx-auto"> 
+        <header className="text-center mb-8 w-full flex flex-col items-center">
+          {/* Logo oficial do chapéu/óculos transparente */}
+          <img 
+            src="/spygram_transparentebranco.png" 
+            alt="SpyGram Logo" 
+            className="h-20 w-auto mb-6 object-contain" 
+          />
+          {/* Título SPYGRAM idêntico ao print */}
+          <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 text-transparent bg-clip-text uppercase tracking-wide">
+            SPYGRAM
+          </h1>
+          {/* Subtítulo idêntico ao print */}
+          <p className="text-lg font-extrabold tracking-tight text-center leading-snug uppercase max-w-sm">
+            ACESSE O <span className="text-[#E1306C]">INSTAGRAM</span> DE QUALQUER PESSOA <span className="text-[#FCAF45]">SEM SENHA</span>
+          </p>
         </header>
         <main className="w-full flex flex-col items-center">
           <CustomSearchBar query={searchQuery} setQuery={setSearchQuery} isLoading={isLoading} />
           <InvasionCounter />
           <div className="mt-6"><ConsentCheckbox checked={hasConsented} onChange={setHasConsented} /></div>
-          <div className="mt-6"><SparkleButton onClick={handleSearch} disabled={isLoading || !hasConsented}>{isLoading ? 'Buscando...' : 'Invadir Conta'}</SparkleButton></div>
+          <div className="mt-6 w-full"><SparkleButton onClick={handleSearch} disabled={isLoading || !hasConsented}>{isLoading ? 'Buscando...' : 'Invadir Conta'}</SparkleButton></div>
           <div className="w-full mt-4">{error && <ErrorMessage message={error} />}</div>
         </main>
-        <footer className="mt-16 flex items-center gap-1 text-gray-500 text-sm"><Lock className="w-4 h-4 text-green-500" /> SSL Verificado</footer>
+        <footer className="mt-16 flex items-center gap-2 text-gray-500 text-xs font-bold uppercase tracking-wider">
+          <Lock className="w-4 h-4 text-green-500" /> 
+          <span>SSL Verificado</span>
+        </footer>
       </div>
     </div>
   );
