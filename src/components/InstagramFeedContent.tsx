@@ -29,7 +29,7 @@ interface ClickableProps {
 }
 
 const InstagramHeader: React.FC<ClickableProps> = ({ onLockedFeatureClick }) => (
-  <header className="grid grid-cols-3 items-center px-4 py-2 border-b border-gray-800 bg-black flex-shrink-0 md:hidden">
+  <header className="grid grid-cols-3 items-center px-4 py-2 border-b border-gray-800 bg-black flex-shrink-0 md:hidden sticky top-0 z-50 w-full">
     <button onClick={() => onLockedFeatureClick('criar uma publicação')} className="flex justify-start">
       <img src="/icons/add-content.png" alt="Criar" className="w-7 h-7" style={{ filter: 'brightness(0) invert(1)' }} />
     </button>
@@ -46,7 +46,7 @@ const InstagramHeader: React.FC<ClickableProps> = ({ onLockedFeatureClick }) => 
 const InstagramFooter: React.FC<{ profileData: ProfileData } & ClickableProps> = ({ profileData, onLockedFeatureClick }) => {
   const navigate = useNavigate();
   return (
-    <footer className="flex justify-around items-center py-3 border-t border-gray-800 bg-black flex-shrink-0 md:hidden">
+    <footer className="flex justify-around items-center py-3 border-t border-gray-800 bg-black flex-shrink-0 md:hidden sticky bottom-0 z-50 w-full pb-safe">
       <button onClick={() => onLockedFeatureClick('acessar a página inicial')}>
         <img src="/icons/home.png" alt="Página Inicial" className="w-7 h-7" style={{ filter: 'brightness(0) invert(1)' }} />
       </button>

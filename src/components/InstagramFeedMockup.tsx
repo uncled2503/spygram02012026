@@ -12,7 +12,7 @@ interface InstagramFeedMockupProps {
 
 const InstagramFeedMockup: React.FC<InstagramFeedMockupProps> = ({ profileData, suggestedProfiles, posts, locations, onLockedFeatureClick }) => {
   return (
-    <div className="w-full max-w-md mx-auto bg-black h-screen flex flex-col shadow-2xl shadow-purple-500/20 md:shadow-none relative overflow-hidden">
+    <div className="w-full max-w-md mx-auto bg-black h-full flex flex-col shadow-2xl shadow-purple-500/20 md:shadow-none relative overflow-hidden">
       <InstagramFeedContent 
         profileData={profileData} 
         suggestedProfiles={suggestedProfiles} 
