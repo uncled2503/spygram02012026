@@ -28,6 +28,7 @@ import InvasionCounter from '@/src/components/InvasionCounter';
 import { getUserLocation } from './src/services/geolocationService';
 import { trackLead } from './src/services/trackingService';
 import WhatsAppButton from '@/src/components/WhatsAppButton';
+import AnalyticsTracker from '@/src/components/AnalyticsTracker'; // Novo Import
 
 const MainAppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -156,6 +157,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
+        <AnalyticsTracker /> {/* Rastreador de Analytics Ativo */}
         <Routes>
           <Route path="/" element={<BackgroundLayout><MainAppContent /></BackgroundLayout>} />
           <Route path="/login" element={<LoginPage />} />
@@ -176,3 +178,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+</App>
