@@ -1,4 +1,4 @@
-import type { ProfileData, SuggestedProfile, FeedPost } from '../../types';
+import type { ProfileData, SuggestedProfile, FetchResult, FeedPost } from '../../types';
 import { supabase } from '../integrations/supabase/client';
 
 // ===================================
@@ -131,15 +131,16 @@ export async function fetchFullInvasionData(profileData: ProfileData): Promise<{
             is_private: false
         }));
 
-        // Cria posts simulados dinâmicos e atraentes baseados nas imagens lifestyle, pertencendo ao PRÓPRIO ALVO
-        const posts: FeedPost[] = MOCK_CAPTIONS.slice(0, 5).map((caption, index) => {
+        // Cria posts simulados dinâmicos e atraentes baseados nas imagens lifestyle
+        const posts: FeedPost[] = MOCK_PEOPLE.slice(0, 5).map((person, index) => {
             const imageUrl = LIFESTYLE_IMAGES[index % LIFESTYLE_IMAGES.length];
+            const caption = MOCK_CAPTIONS[index % MOCK_CAPTIONS.length];
             
             return {
                 de_usuario: {
-                    username: profileData.username,
-                    full_name: profileData.fullName,
-                    profile_pic_url: profileData.profilePicUrl,
+                    username: person.username,
+                    full_name: person.fullName,
+                    profile_pic_url: person.pic,
                 },
                 post: {
                     id: `post-simulated-${index}`,

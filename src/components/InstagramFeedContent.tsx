@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, MoreHorizontal, ChevronDown, Plus } from 'lucide-react';
 import { ProfileData, SuggestedProfile, FeedPost } from '../../types';
 
-// Lista de legendas variadas para posts bloqueados do alvo
+// Lista de legendas variadas para posts bloqueados
 const MOCK_CAPTIONS = [
   "Finalmente um tempo para mim... ✨",
   "Que dia incrível! 📸",
@@ -69,15 +69,16 @@ const InstagramFooter: React.FC<{ profileData: ProfileData } & ClickableProps> =
 
 const RealPost: React.FC<{ postData: FeedPost; location?: string } & ClickableProps> = ({ postData, location, onLockedFeatureClick }) => {
   const { de_usuario, post } = postData;
-  const usernameDisplay = de_usuario.username.includes('****') ? de_usuario.username : maskUsername(de_usuario.username);
+  const maskedUsername = maskUsername(de_usuario.username);
+  const navigate = useNavigate();
 
   return (
     <div className="border-b border-gray-800 mb-4">
       <div className="flex items-center justify-between p-3">
         <div onClick={() => onLockedFeatureClick(`ver o perfil de @${de_usuario.username}`)} className="flex items-center space-x-3 cursor-pointer">
-          <img src={de_usuario.profile_pic_url} alt={de_usuario.username} className="w-8 h-8 rounded-full object-cover aspect-square" />
+          <img src={de_usuario.profile_pic_url} alt={de_usuario.username} className="w-8 h-8 rounded-full object-cover" />
           <div>
-            <p className="text-sm font-semibold text-white">@{usernameDisplay}</p>
+            <p className="text-sm font-semibold text-white">{maskedUsername}</p>
             {location && <p className="text-xs text-gray-400">{location}</p>}
           </div>
         </div>
@@ -117,7 +118,7 @@ const RealPost: React.FC<{ postData: FeedPost; location?: string } & ClickablePr
       <div className="px-3 pb-3 text-xs">
         <p onClick={() => onLockedFeatureClick('ver as curtidas')} className="font-semibold text-white mb-1 cursor-pointer">{new Intl.NumberFormat().format(post.like_count)} curtidas</p>
         {post.caption && (
-          <p className="text-white"><span className="font-semibold mr-1">@{usernameDisplay}</span><span>{post.caption}</span></p>
+          <p className="text-white"><span className="font-semibold mr-1">{maskedUsername}</span><span>{post.caption}</span></p>
         )}
         <p onClick={() => onLockedFeatureClick('ver os comentários')} className="text-gray-500 mt-1 cursor-pointer">Ver todos os {post.comment_count} comentários</p>
       </div>
@@ -132,7 +133,7 @@ const LockedPost: React.FC<{
   index: number;
   onLockedFeatureClick: (featureName: string) => void;
 }> = ({ username, profilePicUrl, location, index, onLockedFeatureClick }) => {
-  const usernameDisplay = username.includes('****') ? username : maskUsername(username);
+  const maskedUsername = maskUsername(username);
   const caption = MOCK_CAPTIONS[index % MOCK_CAPTIONS.length];
   const likes = Math.floor(Math.random() * 2000) + 120;
   const comments = Math.floor(Math.random() * 60) + 5;
@@ -141,9 +142,9 @@ const LockedPost: React.FC<{
     <div className="border-b border-gray-800 mb-4">
       <div className="flex items-center justify-between p-3">
         <div onClick={() => onLockedFeatureClick(`ver o perfil de @${username}`)} className="flex items-center space-x-3 cursor-pointer">
-          <img src={profilePicUrl} alt={username} className="w-8 h-8 rounded-full object-cover aspect-square border border-gray-800" />
+          <img src={profilePicUrl} alt={username} className="w-8 h-8 rounded-full object-cover border border-gray-800" />
           <div>
-            <p className="text-sm font-semibold text-white">@{usernameDisplay}</p>
+            <p className="text-sm font-semibold text-white">{maskedUsername}</p>
             {location && <p className="text-xs text-gray-400">{location}</p>}
           </div>
         </div>
@@ -174,7 +175,7 @@ const LockedPost: React.FC<{
       </div>
       <div className="px-3 pb-3 text-xs space-y-1 blur-sm select-none pointer-events-none">
         <p className="font-semibold text-white mb-1">{likes} curtidas</p>
-        <p className="text-white"><span className="font-semibold mr-1">@{usernameDisplay}</span><span>{caption}</span></p>
+        <p className="text-white"><span className="font-semibold mr-1">{maskedUsername}</span><span>{caption}</span></p>
         <p className="text-gray-500 mt-1">Ver todos os {comments} comentários</p>
       </div>
     </div>
@@ -194,12 +195,12 @@ const InstagramFeedContent: React.FC<InstagramFeedContentProps> = ({ profileData
   return (
     <>
       <InstagramHeader onLockedFeatureClick={onLockedFeatureClick} />
-      <div className="flex-1 overflow-y-auto scrollbar-hide bg-black">
-        <div className="flex p-3 space-x-4 border-b border-gray-800 overflow-x-auto flex-shrink-0 scrollbar-hide items-center">
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="flex p-3 space-x-4 border-b border-gray-800 overflow-x-auto flex-shrink-0 scrollbar-hide">
           <div onClick={() => onLockedFeatureClick('criar um story')} className="flex flex-col items-center flex-shrink-0 space-y-1 cursor-pointer">
-            <div className="relative w-16 h-16">
-              <img src={profileData.profilePicUrl} alt="Seu story" className="w-full h-full rounded-full object-cover aspect-square" />
-              <div className="absolute bottom-0 right-0 w-5 h-5 bg-blue-500 rounded-full border-2 border-black flex items-center justify-center"><Plus className="w-3 h-3 text-white" /></div>
+            <div className="relative">
+              <img src={profileData.profilePicUrl} alt="Seu story" className="w-16 h-16 rounded-full object-cover" />
+              <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full border-2 border-black flex items-center justify-center"><Plus className="w-4 h-4 text-white" /></div>
             </div>
             <span className="text-xs text-gray-400">Seu story</span>
           </div>
@@ -211,15 +212,15 @@ const InstagramFeedContent: React.FC<InstagramFeedContentProps> = ({ profileData
 
             return (
               <div key={index} onClick={() => onLockedFeatureClick(`ver os stories de @${story.username}`)} className="flex flex-col items-center flex-shrink-0 space-y-1 text-center relative cursor-pointer">
-                <div className={`w-[70px] h-[70px] rounded-full flex items-center justify-center p-[2.5px] flex-shrink-0 ${ringClasses}`}>
-                  <div className="bg-black p-[2px] rounded-full w-full h-full relative">
-                    <img src={story.profile_pic_url} alt={story.username} className="w-full h-full rounded-full object-cover aspect-square" />
+                <div className={`w-[70px] h-[70px] rounded-full flex items-center justify-center p-0.5 ${ringClasses}`}>
+                  <div className="bg-black p-1 rounded-full relative">
+                    <img src={story.profile_pic_url} alt={story.username} className="w-full h-full rounded-full object-cover" />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
-                      <Lock className="w-4 h-4 text-white drop-shadow-lg" />
+                      <Lock className="w-6 h-6 text-white drop-shadow-lg" />
                     </div>
                   </div>
                 </div>
-                <span className="text-xs text-white mt-1 truncate w-16">@{maskUsername(story.username)}</span>
+                <span className="text-xs text-white mt-1 truncate w-16">{maskUsername(story.username)}</span>
               </div>
             );
           })}
