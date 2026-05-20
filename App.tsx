@@ -112,7 +112,7 @@ const MainAppContent: React.FC = () => {
       };
       sessionStorage.setItem('invasionData', JSON.stringify(invasionData));
       
-      // Atualiza o status do lead
+      // Atendimento do lead
       trackLead({ status: 'confirmou_alvo' });
       
       navigate('/instagram', { state: invasionData });
@@ -178,4 +178,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-</App>
