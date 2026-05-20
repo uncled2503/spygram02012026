@@ -25,16 +25,16 @@ function shuffleArray(array: any[]): any[] {
     return [...array].sort(() => Math.random() - 0.5);
 }
 
-// Lista de nomes/usuários realistas em português para simulação com avatares de placeholder borrados
+// Lista de nomes/usuários realistas em português para simulação
 const MOCK_PEOPLE = [
-    { username: 'biel_silva', fullName: 'Gabriel Silva', pic: '/perfil.jpg' },
-    { username: 'amanda.mendes', fullName: 'Amanda Mendes', pic: '/perfil.jpg' },
-    { username: 'lucas_lima', fullName: 'Lucas Lima', pic: '/perfil.jpg' },
-    { username: 'carol_rezende', fullName: 'Carolina Rezende', pic: '/perfil.jpg' },
-    { username: 'thiagosantos', fullName: 'Thiago Santos', pic: '/perfil.jpg' },
-    { username: 'julia.moraes', fullName: 'Júlia Moraes', pic: '/perfil.jpg' },
-    { username: 'felipe.castro', fullName: 'Felipe Castro', pic: '/perfil.jpg' },
-    { username: 'leticia.s', fullName: 'Letícia Souza', pic: '/perfil.jpg' },
+    { username: 'biel_silva', fullName: 'Gabriel Silva', pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=cover' },
+    { username: 'amanda.mendes', fullName: 'Amanda Mendes', pic: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=cover' },
+    { username: 'lucas_lima', fullName: 'Lucas Lima', pic: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=cover' },
+    { username: 'carol_rezende', fullName: 'Carolina Rezende', pic: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&h=150&fit=cover' },
+    { username: 'thiagosantos', fullName: 'Thiago Santos', pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=cover' },
+    { username: 'julia.moraes', fullName: 'Júlia Moraes', pic: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=cover' },
+    { username: 'felipe.castro', fullName: 'Felipe Castro', pic: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&h=150&fit=cover' },
+    { username: 'leticia.s', fullName: 'Letícia Souza', pic: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=cover' },
 ];
 
 const LIFESTYLE_IMAGES = [
