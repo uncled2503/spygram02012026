@@ -51,7 +51,7 @@ serve(async (req) => {
       leadIdToUnlock = externalRef;
     }
 
-    // 3. Verificação de Status (Lista expandida e insensível a caixa)
+    // 3. Verificação de Status (Lista de sucesso Royal Banking)
     const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
     const isPaid = successStatuses.includes(rawStatus);
 
@@ -64,6 +64,35 @@ serve(async (req) => {
         .eq('id', leadIdToUnlock);
 
       if (leadError) console.error("[payment-webhook] Erro ao atualizar lead:", leadError.message);
+
+      // --- NOVO DISPARO AUTOMÁTICO DE PURCHASE VIA CAPI ---
+      try {
+        const { data: leadData } = await supabase
+          .from('leads')
+          .select('email, phone, total_amount')
+          .eq('id', leadIdToUnlock)
+          .single();
+
+        if (leadData) {
+          console.log(`[payment-webhook] Disparando CAPI Purchase para email: ${leadData.email}`);
+          await supabase.functions.invoke('facebook-capi', {
+            body: {
+              eventName: 'Purchase',
+              userData: {
+                email: leadData.email,
+                phone: leadData.phone
+              },
+              customData: {
+                value: Number(leadData.total_amount) || 37.90,
+                currency: 'BRL'
+              }
+            }
+          });
+        }
+      } catch (fbErr) {
+        console.error("[payment-webhook] Falha ao enviar evento de Purchase:", fbErr.message);
+      }
+      // ----------------------------------------------------
     } else {
       console.warn(`[payment-webhook] Não liberado. Lead: ${leadIdToUnlock}, Status: ${rawStatus}`);
     }

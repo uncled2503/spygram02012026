@@ -10,6 +10,7 @@ import PaymentSuccessDisplay from '../components/PaymentSuccessDisplay';
 import { supabase } from '../integrations/supabase/client';
 import toast from 'react-hot-toast';
 import { trackLead } from '../services/trackingService';
+import { trackFacebookEvent } from '../services/facebookService'; // Novo Import
 
 const CHECKOUT_URL = 'https://go.perfectpay.com.br/PPU38CPUD1S';
 
@@ -80,6 +81,11 @@ const CheckoutPage: React.FC = () => {
 
   const total = basePrice + adicionais;
 
+  // Disparo de InitiateCheckout Inicial
+  useEffect(() => {
+    trackFacebookEvent('InitiateCheckout', {}, { value: total });
+  }, []);
+
   const handleFinalize = async () => {
     if (!formData.nome || !formData.email || !formData.confirmarEmail || !formData.documento) {
         toast.error("Preencha todos os dados.");
@@ -97,6 +103,15 @@ const CheckoutPage: React.FC = () => {
     const currentLeadId = sessionStorage.getItem('current_lead_id');
     const invasionDataRaw = sessionStorage.getItem('invasionData');
     const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
+
+    // Disparar InitiateCheckout enriquecido com email e whatsapp para excelente taxa de correspondência
+    trackFacebookEvent('InitiateCheckout', {
+      email: formData.email,
+      phone: formData.whatsapp
+    }, {
+      value: total,
+      currency: 'BRL'
+    });
 
     try {
         const { data, error } = await supabase.functions.invoke('royal-banking-payment', {

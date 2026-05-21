@@ -28,7 +28,8 @@ import InvasionCounter from '@/src/components/InvasionCounter';
 import { getUserLocation } from './src/services/geolocationService';
 import { trackLead } from './src/services/trackingService';
 import WhatsAppButton from '@/src/components/WhatsAppButton';
-import AnalyticsTracker from '@/src/components/AnalyticsTracker'; // Novo Import
+import AnalyticsTracker from '@/src/components/AnalyticsTracker';
+import { trackFacebookEvent } from './src/services/facebookService'; // Novo Import
 
 const MainAppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -95,6 +96,9 @@ const MainAppContent: React.FC = () => {
         ip_address: locationData.ip,
         status: 'pesquisou'
       });
+
+      // DISPARAR EVENTO DE LEAD NO FACEBOOK (PIXEL + CAPI)
+      trackFacebookEvent('Lead', {}, { value: 0 });
 
     } catch (err) {
       setError("Sistema sobrecarregado, tente novamente mais tarde");
