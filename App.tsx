@@ -17,6 +17,7 @@ import ProgressBar from '@/src/components/ProgressBar';
 import InvasionSimulationPage from '@/src/pages/InvasionSimulationPage';
 import InvasionConcludedPage from '@/src/pages/InvasionConcludedPage';
 import ProfileConfirmationCard from '@/src/components/ProfileConfirmationCard';
+import WelcomePopup from '@/src/components/WelcomePopup'; // Novo Import
 import { MIN_LOADING_DURATION } from './constants';
 import { fetchProfileData } from './src/services/profileService';
 import { AuthProvider, useAuth } from './src/context/AuthContext'; 
@@ -149,6 +150,7 @@ const MainAppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-transparent">
+      <WelcomePopup /> {/* Novo Popup de Boas-Vindas */}
       <ProgressBar progress={progressBarProgress} isVisible={isLoading} />
       <div className="relative z-20 text-white flex flex-col items-center px-4 pt-12 pb-8 w-full"> 
         <header className="text-center mb-8 w-full max-xl">
