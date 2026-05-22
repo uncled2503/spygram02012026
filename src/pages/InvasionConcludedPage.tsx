@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProfileData, SuggestedProfile } from '../../types';
-import { ShieldCheck, ChevronDown, Award, Zap, Lock, MapPin, Search } from 'lucide-react';
+import { ShieldCheck, ChevronDown, Award, Zap, Lock, MapPin, Search, ShieldAlert, Check } from 'lucide-react';
 import ProfileCardDetailed from '../components/ProfileCardDetailed';
 import InteractionProfilesCarousel from '../components/InteractionProfilesCarousel';
 import RealTimeLocationCard from '../components/RealTimeLocationCard';
@@ -51,6 +51,7 @@ const InvasionConcludedPage: React.FC = () => {
   const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>([]);
   const [userCity, setUserCity] = useState<string>('Sua Localização');
   const [showScrollPrompt, setShowScrollPrompt] = useState(true);
+  const [showConcludedWarning, setShowConcludedWarning] = useState(true);
 
   useEffect(() => {
     const storedDataRaw = sessionStorage.getItem('invasionData');
@@ -99,6 +100,63 @@ const InvasionConcludedPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-transparent text-gray-200 font-sans selection:bg-purple-500/30 overflow-x-hidden">
       
+      {/* Modal de Alerta de Fim de Teste */}
+      <AnimatePresence>
+        {showConcludedWarning && (
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+              className="relative bg-[#0d0d11]/95 border border-red-500/30 rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-[0_0_60px_rgba(239,68,68,0.25)] overflow-hidden"
+            >
+              {/* Glow decorativo */}
+              <div className="absolute -top-24 -left-24 w-48 h-48 bg-red-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+              <div className="relative w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <ShieldAlert className="relative w-8 h-8 text-red-500" />
+              </div>
+
+              <h2 className="text-xl font-black text-white uppercase tracking-tight mb-3">
+                Sessão de Teste Expirada
+              </h2>
+
+              <p className="text-gray-300 text-sm leading-relaxed mb-6 font-medium">
+                O seu período de teste gratuito e o tempo de uso expiraram para este endereço de IP. 
+                <span className="block mt-3 text-gray-400 text-xs">
+                  Por medidas de segurança, a visualização interativa do feed foi congelada. No entanto, o sistema compilou um 
+                  <span className="text-yellow-400 font-bold"> relatório completo com todas as provas extraídas</span>.
+                </span>
+              </p>
+
+              <div className="bg-white/5 border border-white/5 rounded-xl p-3 mb-6 flex flex-col gap-1.5 items-start text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                <div className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                  <span>Localização capturada ({userCity})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                  <span>Mensagens & Fotos Deletadas recuperadas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                  <span>Análise de Aplicativos de Namoro</span>
+                </div>
+              </div>
+
+              <ShineButton
+                onClick={() => setShowConcludedWarning(false)}
+                className="w-full bg-red-600 focus:ring-red-500 active:scale-95 py-4"
+                shineColorClasses="bg-white/20"
+              >
+                Visualizar Provas Extraídas
+              </ShineButton>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[3px]" />
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
