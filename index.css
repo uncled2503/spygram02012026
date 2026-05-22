@@ -71,4 +71,6 @@ html, body {
   -moz-user-select: none;    /* Firefox */
   -ms-user-select: none;     /* IE 10+ */
   user-select: none;         /* Standard */
+  /* NOVO: Impede zoom por toque e duplo clique mantendo rolagem livre */
+  touch-action: pan-x pan-y;
 }
