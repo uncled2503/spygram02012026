@@ -27,6 +27,7 @@ const CreditsPage: React.FC = () => {
   const [targetUsername, setTargetUsername] = useState('');
   const [searchLogs, setSearchLogs] = useState<string[]>([]);
   const [isPaidUser, setIsPaidUser] = useState<boolean>(false);
+  const [hasCredits, setHasCredits] = useState<boolean>(false);
   
   // Estados para o Checkout PIX
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
@@ -77,14 +78,42 @@ const CreditsPage: React.FC = () => {
     },
   ];
 
-  // Verifica se o usuário de fato já pagou
+  // Verifica se o usuário possui créditos de pacotes de créditos comprados
   useEffect(() => {
     const checkPayment = async () => {
       const email = sessionStorage.getItem('logged_in_email');
       if (!email) return;
-      const { data } = await supabase.from('leads').select('status').eq('email', email).limit(1);
-      if (data && data.length > 0 && data[0].status === 'pagou') {
-        setIsPaidUser(true);
+      try {
+        const { data: leadsData } = await supabase
+          .from('leads')
+          .select('id, status')
+          .eq('email', email.trim().toLowerCase())
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (leadsData && leadsData.length > 0) {
+          const lead = leadsData[0];
+          const paid = lead.status === 'pagou';
+          setIsPaidUser(paid);
+
+          if (paid) {
+            const { data: paymentsData } = await supabase
+              .from('payments')
+              .select('status, payload')
+              .eq('lead_id', lead.id);
+
+            const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+            const hasValidCreditPayment = paymentsData?.some(p => {
+              const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
+              const payAmt = Number(p.payload?.amount) || 0;
+              return isSuccess && (payAmt === 49.50 || payAmt === 79.50 || payAmt === 149.00);
+            });
+
+            setHasCredits(!!hasValidCreditPayment);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao validar créditos:", e);
       }
     };
     checkPayment();
@@ -101,7 +130,7 @@ const CreditsPage: React.FC = () => {
 
   useEffect(() => {
     if (stage === 'searching') {
-      const logs = isPaidUser 
+      const logs = hasCredits 
         ? [
             `Iniciando varredura no perfil @${targetUsername}...`,
             `Identificando vulnerabilidades no servidor...`,
@@ -125,7 +154,7 @@ const CreditsPage: React.FC = () => {
         } else {
           clearInterval(interval);
           setTimeout(() => {
-            if (isPaidUser) {
+            if (hasCredits) {
               setStage('success');
               toast.success("INVASÃO CONCLUÍDA!");
               
@@ -158,7 +187,7 @@ const CreditsPage: React.FC = () => {
 
       return () => clearInterval(interval);
     }
-  }, [stage, targetUsername, isPaidUser, navigate]);
+  }, [stage, targetUsername, hasCredits, navigate]);
 
   const handlePackageSelection = (pkg: CreditPackage) => {
     setSelectedPackage(pkg);
@@ -359,7 +388,7 @@ const CreditsPage: React.FC = () => {
                 <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Créditos</span>
                 <Coins className="w-2.5 h-2.5 text-yellow-500" />
               </div>
-              <span className="text-sm font-black tabular-nums">{isPaidUser ? 'Ativo' : '0'}</span>
+              <span className="text-sm font-black tabular-nums">{hasCredits ? 'Ativo' : '0'}</span>
            </div>
            <div className="w-px h-6 bg-white/10 mx-1"></div>
            <div className="flex items-center gap-3 pl-1 pr-4 py-1">

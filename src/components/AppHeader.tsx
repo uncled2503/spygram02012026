@@ -14,30 +14,52 @@ const AppHeader: React.FC = () => {
       if (!email) return;
 
       try {
-        const { data, error } = await supabase
+        const { data: leadsData, error: leadError } = await supabase
           .from('leads')
-          .select('status, total_amount, username_searched')
+          .select('id, status, username_searched')
           .eq('email', email.trim().toLowerCase())
           .order('created_at', { ascending: false })
           .limit(1);
 
-        if (!error && data && data.length > 0) {
-          const lead = data[0];
+        if (!leadError && leadsData && leadsData.length > 0) {
+          const lead = leadsData[0];
           if (lead.username_searched) {
             setUsername(lead.username_searched);
           }
           
           if (lead.status === 'pagou') {
             setIsPaid(true);
-            const amount = Number(lead.total_amount) || 0;
-            if (amount >= 140) {
-              setCredits('Ilimitado');
-            } else if (amount >= 70) {
-              setCredits(30);
-            } else if (amount >= 45) {
-              setCredits(10);
+
+            // Busca os pagamentos aprovados associados a este lead
+            const { data: paymentsData } = await supabase
+              .from('payments')
+              .select('status, payload')
+              .eq('lead_id', lead.id);
+
+            const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+            
+            const creditPayments = paymentsData?.filter(p => {
+              const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
+              const payAmt = Number(p.payload?.amount) || 0;
+              // Somente valores exatos dos pacotes de recarga de créditos
+              return isSuccess && (payAmt === 49.50 || payAmt === 79.50 || payAmt === 149.00);
+            }) || [];
+
+            if (creditPayments.length > 0) {
+              let maxCredits: string | number = 0;
+              creditPayments.forEach(p => {
+                const payAmt = Number(p.payload?.amount) || 0;
+                if (payAmt === 149.00) {
+                  maxCredits = 'Ilimitado';
+                } else if (payAmt === 79.50 && maxCredits !== 'Ilimitado') {
+                  maxCredits = Math.max(Number(maxCredits) || 0, 30);
+                } else if (payAmt === 49.50 && maxCredits !== 'Ilimitado') {
+                  maxCredits = Math.max(Number(maxCredits) || 0, 10);
+                }
+              });
+              setCredits(maxCredits);
             } else {
-              setCredits('0'); // Se pagou apenas os R$ 37,90 do relatório básico, inicia com 0 créditos livres.
+              setCredits('0');
             }
           } else {
             setCredits('0');

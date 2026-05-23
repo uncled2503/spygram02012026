@@ -81,18 +81,36 @@ const ServersPage: React.FC = () => {
       if (!email) return;
 
       try {
-        const { data, error } = await supabase
+        const { data: leadsData, error: leadError } = await supabase
           .from('leads')
-          .select('status, total_amount')
+          .select('id, status')
           .eq('email', email.trim().toLowerCase())
           .order('created_at', { ascending: false })
           .limit(1);
 
-        if (!error && data && data.length > 0) {
-          const paid = data[0].status === 'pagou';
+        if (!leadError && leadsData && leadsData.length > 0) {
+          const lead = leadsData[0];
+          const paid = lead.status === 'pagou';
           setIsPaid(paid);
-          // O usuário só é considerado portador de créditos se comprou acima de R$ 45 (pelo menos o Lite)
-          setHasCredits(paid && (Number(data[0].total_amount) >= 45));
+
+          if (paid) {
+            // Verifica se possui alguma compra aprovada de pacotes de crédito
+            const { data: paymentsData } = await supabase
+              .from('payments')
+              .select('status, payload')
+              .eq('lead_id', lead.id);
+
+            const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+            const hasValidCreditPayment = paymentsData?.some(p => {
+              const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
+              const payAmt = Number(p.payload?.amount) || 0;
+              return isSuccess && (payAmt === 49.50 || payAmt === 79.50 || payAmt === 149.00);
+            });
+
+            setHasCredits(!!hasValidCreditPayment);
+          } else {
+            setHasCredits(false);
+          }
         } else {
           setIsPaid(false);
           setHasCredits(false);

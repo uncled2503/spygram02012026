@@ -54,14 +54,14 @@ serve(async (req) => {
     const data = await response.json()
 
     if (response.ok && data.idTransaction) {
-      // Registra o mapeamento transação <-> lead
+      // Registra o mapeamento transação <-> lead com o valor no payload
       const { error: pError } = await supabase
         .from('payments')
         .insert({
           transaction_id: String(data.idTransaction),
           lead_id: leadId,
           status: 'pending',
-          payload: data
+          payload: { ...data, amount: amount }
         });
       
       if (pError) console.error("[royal-banking-payment] Erro ao salvar payment:", pError.message);
