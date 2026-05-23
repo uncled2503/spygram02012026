@@ -34,8 +34,10 @@ const AppHeader: React.FC = () => {
               setCredits('Ilimitado');
             } else if (amount >= 70) {
               setCredits(30);
-            } else {
+            } else if (amount >= 45) {
               setCredits(10);
+            } else {
+              setCredits('0'); // Se pagou apenas os R$ 37,90 do relatório básico, inicia com 0 créditos livres.
             }
           } else {
             setCredits('0');
@@ -84,7 +86,7 @@ const AppHeader: React.FC = () => {
             <span className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest">Créditos</span>
             <Coins className="w-2 sm:w-2.5 h-2 sm:h-2.5 text-yellow-500" />
           </div>
-          <span className={`text-xs sm:text-sm font-black tabular-nums ${isPaid ? 'text-green-400' : 'text-white'}`}>
+          <span className={`text-xs sm:text-sm font-black tabular-nums ${isPaid && credits !== '0' ? 'text-green-400' : 'text-white'}`}>
             {credits}
           </span>
         </div>

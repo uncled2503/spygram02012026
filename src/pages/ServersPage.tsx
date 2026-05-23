@@ -69,6 +69,7 @@ const ServersPage: React.FC = () => {
   const navigate = useNavigate();
   const [onlineUsers, setOnlineUsers] = useState(423);
   const [isPaid, setIsPaid] = useState<boolean | null>(null);
+  const [hasCredits, setHasCredits] = useState<boolean>(false);
   const [servers, setServers] = useState([
     { id: 0, ping: 24 }, { id: 1, ping: 42 }, { id: 2, ping: 18 },
     { id: 3, ping: 35 }, { id: 4, ping: 51 }, { id: 5, ping: 12 }
@@ -82,18 +83,23 @@ const ServersPage: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('leads')
-          .select('status')
+          .select('status, total_amount')
           .eq('email', email.trim().toLowerCase())
           .order('created_at', { ascending: false })
           .limit(1);
 
         if (!error && data && data.length > 0) {
-          setIsPaid(data[0].status === 'pagou');
+          const paid = data[0].status === 'pagou';
+          setIsPaid(paid);
+          // O usuário só é considerado portador de créditos se comprou acima de R$ 45 (pelo menos o Lite)
+          setHasCredits(paid && (Number(data[0].total_amount) >= 45));
         } else {
           setIsPaid(false);
+          setHasCredits(false);
         }
       } catch (err) {
         setIsPaid(false);
+        setHasCredits(false);
       }
     };
 
@@ -126,31 +132,31 @@ const ServersPage: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`w-full max-w-4xl mx-auto mb-10 p-5 rounded-2xl border-2 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-xl shadow-2xl ${
-              isPaid 
+              hasCredits 
                 ? 'bg-green-500/10 border-green-500/30 text-green-400' 
                 : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
             }`}
           >
             <div className="flex items-center gap-4">
-              {isPaid ? (
+              {hasCredits ? (
                 <CheckCircle2 className="w-10 h-10 text-green-500 animate-pulse flex-shrink-0" />
               ) : (
                 <AlertTriangle className="w-10 h-10 text-yellow-500 animate-bounce flex-shrink-0" />
               )}
               <div className="text-center sm:text-left">
                 <h3 className="text-white font-black uppercase tracking-tight text-lg">
-                  {isPaid ? 'Acesso Confirmado!' : 'Aguardando Pagamento'}
+                  {hasCredits ? 'Acesso Confirmado!' : 'Aguardando Pagamento ou Recarga'}
                 </h3>
                 <p className="text-xs text-gray-400 font-medium mt-1">
-                  {isPaid 
+                  {hasCredits 
                     ? 'Sua conta possui créditos ativos. Selecione qualquer servidor abaixo para iniciar o rastreamento.' 
-                    : 'Não identificamos créditos vinculados ao seu e-mail. Recarregue no menu para liberar o painel.'
+                    : 'Você precisa recarregar seus créditos para liberar a busca de novos alvos no painel.'
                   }
                 </p>
               </div>
             </div>
 
-            {!isPaid && (
+            {!hasCredits && (
               <button 
                 onClick={() => navigate('/credits')}
                 className="bg-yellow-500 hover:bg-yellow-600 text-black font-black text-xs uppercase px-6 py-3 rounded-xl transition-all shadow-lg active:scale-95"
