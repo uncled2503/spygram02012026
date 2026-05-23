@@ -5,7 +5,7 @@ import {
   Users, DollarSign, Search, ShieldCheck, 
   CreditCard, LogOut, RotateCcw,
   Trash2, MessageCircle, Key, BarChart3, 
-  Map as MapIcon, QrCode, Download, X, FileText, Check, Save, ShieldAlert, ShieldOff
+  Map as MapIcon, QrCode, Download, X, FileText, Check, Save, ShieldAlert, ShieldOff, Coins
 } from 'lucide-react';
 import { 
   XAxis, YAxis, CartesianGrid, 
@@ -44,6 +44,7 @@ const AdminPage: React.FC = () => {
   
   const [showPixModal, setShowPixModal] = useState(false);
   const [showAccessModal, setShowAccessModal] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   
   // Estados para o PIX
@@ -56,6 +57,9 @@ const AdminPage: React.FC = () => {
   const [accessEmail, setAccessEmail] = useState('');
   const [accessPassword, setAccessPassword] = useState('123456');
   const [accessLoading, setAccessLoading] = useState(false);
+
+  // Estados para Créditos
+  const [creditAmount, setCreditAmount] = useState<number>(49.50);
 
   const fetchLeads = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -284,6 +288,32 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const handleAddCredits = async () => {
+    if (!selectedLead) return;
+    setAccessLoading(true);
+    try {
+      // Injeta um pagamento aprovado correspondente ao valor do pacote
+      const { error } = await supabase
+        .from('payments')
+        .insert({
+          transaction_id: `MANUAL-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          lead_id: selectedLead.id,
+          status: 'approved',
+          payload: { amount: creditAmount }
+        });
+
+      if (error) throw error;
+
+      toast.success("Créditos injetados com sucesso!");
+      setShowCreditsModal(false);
+      fetchLeads(true);
+    } catch (err: any) {
+      toast.error("Erro ao processar: " + err.message);
+    } finally {
+      setAccessLoading(false);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-[#0f0f12] flex flex-col items-center justify-center gap-4">
       <Loader />
@@ -408,6 +438,7 @@ const AdminPage: React.FC = () => {
                         <td className="py-5 px-4">
                           <div className="flex items-center justify-center gap-3">
                             <ActionButton onClick={() => handleOpenAccessModal(lead)} icon={Key} color="text-purple-400" title="Gerenciar Acesso" />
+                            <ActionButton onClick={() => { setSelectedLead(lead); setCreditAmount(49.50); setShowCreditsModal(true); }} icon={Coins} color="text-yellow-400" title="Adicionar Créditos" />
                             <ActionButton onClick={() => { setSelectedLead(lead); setShowPixModal(true); setGeneratedPix(null); }} icon={QrCode} color="text-yellow-500" title="Gerar PIX" />
                             <ActionButton onClick={() => window.open(`https://wa.me/55${lead.phone?.replace(/\D/g, '')}`, '_blank')} icon={MessageCircle} color="text-green-500" title="WhatsApp" />
                             <ActionButton onClick={() => handleDeleteLead(lead.id)} icon={Trash2} color="text-red-500" title="Excluir Lead" />
@@ -582,6 +613,97 @@ const AdminPage: React.FC = () => {
                 {selectedLead.status === 'banido' && (
                   <p className="text-center text-[9px] text-red-500 font-bold uppercase tracking-widest">Este acesso está bloqueado manualmente pelo operador.</p>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCreditsModal && selectedLead && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#0f0f12] border border-white/10 w-full max-w-md rounded-[3rem] overflow-hidden shadow-2xl"
+            >
+              <div className="p-8 flex justify-between items-center bg-[#0f0f12] border-b border-white/5">
+                <div>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tighter">Gerenciar Créditos</h3>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Injetar Créditos Manualmente</p>
+                </div>
+                <button onClick={() => setShowCreditsModal(false)} className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20} /></button>
+              </div>
+
+              <div className="p-8 space-y-6">
+                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl">
+                  <img src={selectedLead.profile_pic || '/perfil.jpg'} className="w-14 h-14 rounded-xl object-cover" />
+                  <div>
+                    <p className="text-white font-black text-sm tracking-tight">@{selectedLead.username_searched}</p>
+                    <p className="text-xs text-gray-500 truncate max-w-[200px]">{selectedLead.email}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block">Selecione o Pacote de Créditos</label>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      type="button"
+                      onClick={() => setCreditAmount(49.50)}
+                      className={`w-full p-4 rounded-2xl border text-left flex justify-between items-center transition-all ${
+                        creditAmount === 49.50 ? 'border-yellow-500 bg-yellow-500/10' : 'border-white/5 bg-white/[0.02] hover:bg-white/5'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-xs font-black text-white">10 CRÉDITOS</p>
+                        <p className="text-[10px] text-gray-400">Protocolo Lite</p>
+                      </div>
+                      <span className="text-xs font-black text-yellow-500">R$ 49,50</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => setCreditAmount(79.50)}
+                      className={`w-full p-4 rounded-2xl border text-left flex justify-between items-center transition-all ${
+                        creditAmount === 79.50 ? 'border-yellow-500 bg-yellow-500/10' : 'border-white/5 bg-white/[0.02] hover:bg-white/5'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-xs font-black text-white">30 CRÉDITOS</p>
+                        <p className="text-[10px] text-gray-400">Protocolo Elite</p>
+                      </div>
+                      <span className="text-xs font-black text-yellow-500">R$ 79,50</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => setCreditAmount(149.00)}
+                      className={`w-full p-4 rounded-2xl border text-left flex justify-between items-center transition-all ${
+                        creditAmount === 149.00 ? 'border-yellow-500 bg-yellow-500/10' : 'border-white/5 bg-white/[0.02] hover:bg-white/5'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-xs font-black text-white">ILIMITADO</p>
+                        <p className="text-[10px] text-gray-400">Dominação Total</p>
+                      </div>
+                      <span className="text-xs font-black text-yellow-500">R$ 149,00</span>
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleAddCredits}
+                  disabled={accessLoading}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/20 active:scale-95 transition-all text-xs uppercase tracking-widest"
+                >
+                  {accessLoading ? (
+                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    <><Check size={14} /> Injetar Créditos</>
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>
