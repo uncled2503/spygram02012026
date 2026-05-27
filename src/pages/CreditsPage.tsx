@@ -28,6 +28,7 @@ const CreditsPage: React.FC = () => {
   const [searchLogs, setSearchLogs] = useState<string[]>([]);
   const [isPaidUser, setIsPaidUser] = useState<boolean>(false);
   const [hasCredits, setHasCredits] = useState<boolean>(false);
+  const [creditsCount, setCreditsCount] = useState<string | number>('0');
   
   // Dados do lead logado para reutilização automática (One-Click)
   const [leadDetails, setLeadDetails] = useState<{
@@ -122,23 +123,48 @@ const CreditsPage: React.FC = () => {
             if (!edgeError && edgeData) {
               const paymentsData = edgeData.payments || [];
               const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
-              const hasValidCreditPayment = paymentsData.some((p: any) => {
+              
+              const creditPayments = paymentsData.filter((p: any) => {
                 const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
                 const payAmt = Number(p.payload?.amount) || 0;
                 return isSuccess && (payAmt === 49.50 || payAmt === 79.50 || payAmt === 149.00);
               });
 
-              setHasCredits(hasValidCreditPayment);
+              if (creditPayments.length > 0) {
+                setHasCredits(true);
+                let total = 0;
+                let unlim = false;
+                
+                // Acumula os créditos
+                creditPayments.forEach((p: any) => {
+                  const payAmt = Number(p.payload?.amount) || 0;
+                  if (payAmt === 149.00) {
+                    unlim = true;
+                  } else if (payAmt === 79.50) {
+                    total += 30;
+                  } else if (payAmt === 49.50) {
+                    total += 10;
+                  }
+                });
+                
+                setCreditsCount(unlim ? 'Ilimitado' : total.toString());
+              } else {
+                setHasCredits(false);
+                setCreditsCount('0');
+              }
             } else {
               setHasCredits(false);
+              setCreditsCount('0');
             }
           } else {
             setHasCredits(false);
+            setCreditsCount('0');
           }
         }
       } catch (e) {
         console.error("Erro ao validar créditos:", e);
         setHasCredits(false);
+        setCreditsCount('0');
       }
     };
     checkPayment();
@@ -410,7 +436,7 @@ const CreditsPage: React.FC = () => {
                   <button onClick={() => setShowCheckoutModal(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20} /></button>
                 </div>
 
-                <form onSubmit={handleGeneratePix} className="space-y-4">
+                <form onSubmit={(e) => handleGeneratePix(e)} className="space-y-4">
                   <div className="relative group">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input 
@@ -494,14 +520,16 @@ const CreditsPage: React.FC = () => {
            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mt-1">SISTEMA DE VIGILÂNCIA</p>
         </div>
 
-        {/* Status Pill */}
+        {/* Status Pill com Contagem de Créditos Real */}
         <div className="flex items-center gap-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full p-1 mb-12 shadow-2xl">
            <div className="flex flex-col items-end px-4 py-1">
               <div className="flex items-center gap-1">
                 <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Créditos</span>
                 <Coins className="w-2.5 h-2.5 text-yellow-500" />
               </div>
-              <span className="text-sm font-black tabular-nums">{hasCredits ? 'Ativo' : '0'}</span>
+              <span className={`text-sm font-black tabular-nums ${hasCredits ? 'text-green-400' : 'text-white'}`}>
+                {creditsCount}
+              </span>
            </div>
            <div className="w-px h-6 bg-white/10 mx-1"></div>
            <div className="flex items-center gap-3 pl-1 pr-4 py-1">

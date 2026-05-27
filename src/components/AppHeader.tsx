@@ -45,18 +45,22 @@ const AppHeader: React.FC = () => {
             }) || [];
 
             if (creditPayments.length > 0) {
-              let maxCredits: string | number = 0;
+              let totalCredits = 0;
+              let isUnlimited = false;
+
+              // Soma os pacotes acumulativamente
               creditPayments.forEach((p: any) => {
                 const payAmt = Number(p.payload?.amount) || 0;
                 if (payAmt === 149.00) {
-                  maxCredits = 'Ilimitado';
-                } else if (payAmt === 79.50 && maxCredits !== 'Ilimitado') {
-                  maxCredits = Math.max(Number(maxCredits) || 0, 30);
-                } else if (payAmt === 49.50 && maxCredits !== 'Ilimitado') {
-                  maxCredits = Math.max(Number(maxCredits) || 0, 10);
+                  isUnlimited = true;
+                } else if (payAmt === 79.50) {
+                  totalCredits += 30;
+                } else if (payAmt === 49.50) {
+                  totalCredits += 10;
                 }
               });
-              setCredits(maxCredits);
+              
+              setCredits(isUnlimited ? 'Ilimitado' : totalCredits.toString());
             } else {
               setCredits('0');
             }
