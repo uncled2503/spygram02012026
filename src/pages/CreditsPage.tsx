@@ -157,7 +157,10 @@ const CreditsPage: React.FC = () => {
       let currentLog = 0;
       const interval = setInterval(() => {
         if (currentLog < logs.length) {
-          setSearchLogs(prev => [...prev, logs[currentLog]]);
+          const nextLog = logs[currentLog];
+          if (nextLog) {
+            setSearchLogs(prev => [...prev, nextLog]);
+          }
           currentLog++;
         } else {
           clearInterval(interval);
@@ -498,6 +501,7 @@ const CreditsPage: React.FC = () => {
               </div>
               <div className="space-y-3 min-h-[160px]">
                 {searchLogs.map((log, idx) => {
+                  if (!log) return null;
                   const isError = log.includes('ERRO') || log.includes('⚠️');
                   return (
                     <motion.div 
@@ -794,7 +798,7 @@ const CreditsPage: React.FC = () => {
                 <div 
                   key={pkg.id} 
                   className={`bg-white/5 border rounded-[2rem] p-6 flex flex-col transition-all relative ${
-                    pkg.highlight ? 'border-purple-500 bg-purple-500/5 shadow-[0_0_30px_rgba(139,92,246,0.1)] scale-[1.03]' : 'border-white/10 hover:border-white/20'
+                    pkg.highlight ? 'border-purple-500 bg-purple-500/5 shadow-[0_0_30px_rgba(139,92,246,0.15)] scale-[1.03]' : 'border-white/10 hover:border-white/20'
                   }`}
                 >
                   {pkg.highlight && (
