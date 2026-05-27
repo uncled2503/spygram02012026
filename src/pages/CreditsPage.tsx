@@ -29,6 +29,15 @@ const CreditsPage: React.FC = () => {
   const [isPaidUser, setIsPaidUser] = useState<boolean>(false);
   const [hasCredits, setHasCredits] = useState<boolean>(false);
   
+  // Dados do lead logado para reutilização automática
+  const [leadDetails, setLeadDetails] = useState<{
+    id: string;
+    full_name: string;
+    email: string;
+    document: string;
+    phone: string;
+  } | null>(null);
+
   // Estados para o Checkout PIX (Pacotes de Créditos)
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -40,9 +49,6 @@ const CreditsPage: React.FC = () => {
     documento: '',
     whatsapp: ''
   });
-
-  // Estado para Checkout de Liberação do Firewall (Engenharia Social R$ 19,90)
-  const [showFirewallCheckout, setShowFirewallCheckout] = useState(false);
 
   const creditPackages: CreditPackage[] = [
     {
@@ -89,7 +95,7 @@ const CreditsPage: React.FC = () => {
       try {
         const { data: leadsData } = await supabase
           .from('leads')
-          .select('id, status')
+          .select('id, status, full_name, email, document, phone')
           .eq('email', email.trim().toLowerCase())
           .order('created_at', { ascending: false })
           .limit(1);
@@ -98,6 +104,15 @@ const CreditsPage: React.FC = () => {
           const lead = leadsData[0];
           const paid = lead.status === 'pagou';
           setIsPaidUser(paid);
+          
+          // Salva os dados do lead logado para uso automático
+          setLeadDetails({
+            id: lead.id,
+            full_name: lead.full_name || '',
+            email: lead.email || '',
+            document: lead.document || '',
+            phone: lead.phone || ''
+          });
 
           if (paid) {
             // Busca os pagamentos aprovados por meio da Edge Function (bypass de RLS)
@@ -215,6 +230,62 @@ const CreditsPage: React.FC = () => {
     }
   };
 
+  // Função unificada para gerar PIX de bypass (Firewall ou Upsell) de forma automática e instantânea
+  const handleBypassPayment = async (type: 'firewall' | 'upsell') => {
+    if (!leadDetails) {
+      toast.error("Erro ao carregar dados do seu acesso.");
+      return;
+    }
+
+    setIsGeneratingPix(true);
+    const toastId = toast.loading("Gerando seu PIX...");
+
+    const amountToCharge = type === 'upsell' ? 9.90 : 19.90;
+    const purchasedItems = type === 'upsell' 
+      ? ['Resgate de Dados Apagados 🗑️'] 
+      : ['Firewall Bypass SSL 🛡️'];
+    const status = type === 'upsell' ? 'gerou_pix_upsell_dados' : 'gerou_pix_firewall';
+
+    try {
+      // Salva o lead antes de gerar
+      await trackLead({
+        full_name: leadDetails.full_name,
+        email: leadDetails.email,
+        phone: leadDetails.phone,
+        document: leadDetails.document,
+        status: status,
+        amount: amountToCharge
+      });
+
+      const { data, error } = await supabase.functions.invoke('royal-banking-payment', {
+        body: { 
+          name: leadDetails.full_name || leadDetails.email,
+          email: leadDetails.email,
+          document: leadDetails.document,
+          phone: leadDetails.phone,
+          amount: amountToCharge,
+          leadId: leadDetails.id,
+          items: purchasedItems
+        },
+      });
+
+      if (error || !data.paymentCode) throw new Error('Falha ao gerar pagamento');
+
+      setPixResult({
+        paymentCode: data.paymentCode,
+        paymentCodeBase64: data.paymentCodeBase64,
+        idTransaction: data.idTransaction,
+        amount: amountToCharge
+      });
+
+      toast.success("PIX Gerado com sucesso!", { id: toastId });
+    } catch (err) {
+      toast.error("Erro no servidor. Tente novamente.", { id: toastId });
+    } finally {
+      setIsGeneratingPix(false);
+    }
+  };
+
   const handleGeneratePix = async (e: React.FormEvent, isFirewallBypass: boolean = false) => {
     e.preventDefault();
     if (!formData.nome || !formData.email || !formData.documento) {
@@ -225,17 +296,8 @@ const CreditsPage: React.FC = () => {
     setIsGeneratingPix(true);
     const toastId = toast.loading("Gerando seu PIX...");
 
-    const amountToCharge = stage === 'upsell_data_recovery'
-      ? 9.90
-      : isFirewallBypass 
-        ? 19.90 
-        : selectedPackage?.numericPrice || 49.50;
-
-    const purchasedItems = stage === 'upsell_data_recovery'
-      ? ['Resgate de Dados Apagados 🗑️']
-      : isFirewallBypass 
-        ? ['Firewall Bypass SSL 🛡️'] 
-        : [`Recarga: ${selectedPackage?.title} 🪙`];
+    const amountToCharge = selectedPackage?.numericPrice || 49.50;
+    const purchasedItems = [`Recarga: ${selectedPackage?.title} 🪙`];
 
     try {
       const currentLeadId = sessionStorage.getItem('current_lead_id');
@@ -246,7 +308,7 @@ const CreditsPage: React.FC = () => {
         email: formData.email,
         phone: formData.whatsapp,
         document: formData.documento,
-        status: stage === 'upsell_data_recovery' ? 'gerou_pix_upsell_dados' : isFirewallBypass ? 'gerou_pix_firewall' : 'gerou_pix_creditos',
+        status: 'gerou_pix_creditos',
         amount: amountToCharge
       });
 
@@ -279,10 +341,6 @@ const CreditsPage: React.FC = () => {
     }
   };
 
-  const handleGenerateFirewallPixClick = () => {
-    setShowFirewallCheckout(true);
-  };
-
   const maskCPF = (v: string) => {
     v = v.replace(/\D/g, "");
     if (v.length <= 11) {
@@ -305,7 +363,6 @@ const CreditsPage: React.FC = () => {
           onSuccess={() => {
             if (pixResult.amount === 19.90) {
               setPixResult(null);
-              setShowFirewallCheckout(false); // Reseta o formulário para o upsell
               setStage('upsell_data_recovery');
               toast.success("Firewall Desativado! Oferta especial liberada.");
             } else if (pixResult.amount === 9.90) {
@@ -579,73 +636,17 @@ const CreditsPage: React.FC = () => {
                 </div>
               </div>
 
-              {!showFirewallCheckout ? (
-                <button
-                  onClick={handleGenerateFirewallPixClick}
-                  className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl shadow-xl shadow-red-600/30 transition-all active:scale-95 text-xs uppercase tracking-widest"
-                >
-                  Liberar Firewall (R$ 19,90)
-                </button>
-              ) : (
-                <motion.form 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  onSubmit={(e) => handleGeneratePix(e, true)} 
-                  className="space-y-4 text-left border-t border-white/5 pt-6 mt-6"
-                >
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="text" 
-                      placeholder="NOME COMPLETO"
-                      required
-                      value={formData.nome}
-                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-red-500 transition-all uppercase"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="email" 
-                      placeholder="E-MAIL DE SUPORTE"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-red-500 transition-all lowercase"
-                    />
-                  </div>
-                  <div className="relative">
-                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="text" 
-                      placeholder="CPF"
-                      required
-                      value={formData.documento}
-                      onChange={(e) => setFormData({...formData, documento: maskCPF(e.target.value)})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-red-500 transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="tel" 
-                      placeholder="WHATSAPP"
-                      value={formData.whatsapp}
-                      onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-red-500 transition-all"
-                    />
-                  </div>
-
-                  <button 
-                    type="submit"
-                    disabled={isGeneratingPix}
-                    className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-red-600/30 active:scale-95 transition-all text-xs"
-                  >
-                    {isGeneratingPix ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><QrCode size={16} /> ATIVAR TÚNEL DE DESVIO</>}
-                  </button>
-                </motion.form>
-              )}
+              <button
+                onClick={() => handleBypassPayment('firewall')}
+                disabled={isGeneratingPix}
+                className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl shadow-xl shadow-red-600/30 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+              >
+                {isGeneratingPix ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  "Liberar Firewall (R$ 19,90)"
+                )}
+              </button>
             </motion.div>
           )}
 
@@ -694,81 +695,25 @@ const CreditsPage: React.FC = () => {
                 </div>
               </div>
 
-              {!showFirewallCheckout ? (
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setShowFirewallCheckout(true)}
-                    className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-xl shadow-xl shadow-purple-600/30 transition-all active:scale-95 text-xs uppercase tracking-widest"
-                  >
-                    Adicionar ao meu Relatório (R$ 9,90)
-                  </button>
-                  <button
-                    onClick={runRealInvasionRelease}
-                    className="w-full py-3 text-gray-500 hover:text-gray-300 text-xs font-bold uppercase tracking-widest transition-colors"
-                  >
-                    Não, obrigado, quero apenas o relatório básico
-                  </button>
-                </div>
-              ) : (
-                <motion.form 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  onSubmit={(e) => handleGeneratePix(e, true)} 
-                  className="space-y-4 text-left border-t border-white/5 pt-6 mt-6"
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleBypassPayment('upsell')}
+                  disabled={isGeneratingPix}
+                  className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-xl shadow-xl shadow-purple-600/30 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2"
                 >
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="text" 
-                      placeholder="NOME COMPLETO"
-                      required
-                      value={formData.nome}
-                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-purple-500 transition-all uppercase"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="email" 
-                      placeholder="E-MAIL DE SUPORTE"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-purple-500 transition-all lowercase"
-                    />
-                  </div>
-                  <div className="relative">
-                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="text" 
-                      placeholder="CPF"
-                      required
-                      value={formData.documento}
-                      onChange={(e) => setFormData({...formData, documento: maskCPF(e.target.value)})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-purple-500 transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="tel" 
-                      placeholder="WHATSAPP"
-                      value={formData.whatsapp}
-                      onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold outline-none focus:border-purple-500 transition-all"
-                    />
-                  </div>
-
-                  <button 
-                    type="submit"
-                    disabled={isGeneratingPix}
-                    className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-purple-600/30 active:scale-95 transition-all text-xs"
-                  >
-                    {isGeneratingPix ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><QrCode size={16} /> ATIVAR RECUPERAÇÃO DE DADOS</>}
-                  </button>
-                </motion.form>
-              )}
+                  {isGeneratingPix ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Adicionar ao meu Relatório (R$ 9,90)"
+                  )}
+                </button>
+                <button
+                  onClick={runRealInvasionRelease}
+                  className="w-full py-3 text-gray-500 hover:text-gray-300 text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  Não, obrigado, quero apenas o relatório básico
+                </button>
+              </div>
             </motion.div>
           )}
 
