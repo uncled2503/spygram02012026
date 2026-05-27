@@ -80,47 +80,36 @@ const ServersPage: React.FC = () => {
     if (!email) return;
 
     try {
-      const { data: leadsData, error: leadError } = await supabase
+      const { data: leadsData } = await supabase
         .from('leads')
         .select('id, status')
-        .eq('email', email.trim().toLowerCase())
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('email', email.trim().toLowerCase());
 
-      if (!leadError && leadsData && leadsData.length > 0) {
-        const lead = leadsData[0];
-        const paid = lead.status === 'pagou';
-        setIsPaid(paid);
+      const hasAnyPaid = leadsData?.some(l => l.status === 'pagou') || false;
+      setIsPaid(hasAnyPaid);
 
-        if (paid) {
-          const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-credits', {
-            body: { leadId: lead.id, action: 'get' }
-          });
+      // Busca os pagamentos unificados por E-MAIL
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-credits', {
+        body: { email: email.trim().toLowerCase(), action: 'get' }
+      });
 
-          if (!edgeError && edgeData) {
-            const paymentsData = edgeData.payments || [];
-            const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
-            
-            const creditPayments = paymentsData.filter((p: any) => {
-              const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
-              const amt = Number(p.payload?.amount) || 0;
-              const itemsStr = Array.isArray(p.payload?.items) ? p.payload.items.join(' ').toLowerCase() : '';
-              
-              const isCreditValue = Math.abs(amt - 49.5) < 0.1 || Math.abs(amt - 79.5) < 0.1 || Math.abs(amt - 149) < 0.1;
-              const isCreditItem = itemsStr.includes('recarga') || itemsStr.includes('crédito') || itemsStr.includes('ilimitado');
-              
-              return isSuccess && (isCreditValue || isCreditItem);
-            });
+      if (!edgeError && edgeData) {
+        const paymentsData = edgeData.payments || [];
+        const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+        
+        const creditPayments = paymentsData.filter((p: any) => {
+          const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
+          const amt = Number(p.payload?.amount) || 0;
+          const itemsStr = Array.isArray(p.payload?.items) ? p.payload.items.join(' ').toLowerCase() : '';
+          
+          const isCreditValue = Math.abs(amt - 49.5) < 0.1 || Math.abs(amt - 79.5) < 0.1 || Math.abs(amt - 149) < 0.1;
+          const isCreditItem = itemsStr.includes('recarga') || itemsStr.includes('crédito') || itemsStr.includes('ilimitado');
+          
+          return isSuccess && (isCreditValue || isCreditItem);
+        });
 
-            setHasCredits(creditPayments.length > 0);
-          } else {
-            setHasCredits(false);
-          }
-        } else {
-          setHasCredits(false);
-        }
+        setHasCredits(creditPayments.length > 0);
       } else {
-        setIsPaid(false);
         setHasCredits(false);
       }
     } catch (err) {
@@ -131,8 +120,6 @@ const ServersPage: React.FC = () => {
 
   useEffect(() => {
     checkPaymentStatus();
-
-    // Checa a cada 5 segundos para atualização em tempo real
     const statusInterval = setInterval(checkPaymentStatus, 5000);
 
     const pingInterval = setInterval(() => {

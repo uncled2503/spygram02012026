@@ -24,67 +24,58 @@ const AppHeader: React.FC = () => {
     if (!email) return;
 
     try {
-      const { data: leadsData, error: leadError } = await supabase
+      // Verifica se o usuário tem algum lead pago
+      const { data: leadsData } = await supabase
         .from('leads')
         .select('id, status')
-        .eq('email', email.trim().toLowerCase())
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('email', email.trim().toLowerCase());
 
-      if (!leadError && leadsData && leadsData.length > 0) {
-        const lead = leadsData[0];
+      const hasAnyPaid = leadsData?.some(l => l.status === 'pagou') || false;
+      setIsPaid(hasAnyPaid);
+
+      // Busca os pagamentos unificados por E-MAIL (bypass RLS via Edge Function)
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-credits', {
+        body: { email: email.trim().toLowerCase(), action: 'get' }
+      });
+
+      if (edgeError) throw edgeError;
+
+      const paymentsData = edgeData?.payments || [];
+      const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+      
+      const creditPayments = paymentsData.filter((p: any) => {
+        const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
+        const amt = Number(p.payload?.amount) || 0;
+        const itemsStr = Array.isArray(p.payload?.items) ? p.payload.items.join(' ').toLowerCase() : '';
         
-        if (lead.status === 'pagou') {
-          setIsPaid(true);
+        const isCreditValue = Math.abs(amt - 49.5) < 0.1 || Math.abs(amt - 79.5) < 0.1 || Math.abs(amt - 149) < 0.1;
+        const isCreditItem = itemsStr.includes('recarga') || itemsStr.includes('crédito') || itemsStr.includes('ilimitado');
+        
+        return isSuccess && (isCreditValue || isCreditItem);
+      });
 
-          // Busca os pagamentos aprovados (bypass RLS)
-          const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-credits', {
-            body: { leadId: lead.id, action: 'get' }
-          });
+      if (creditPayments.length > 0) {
+        let totalCredits = 0;
+        let isUnlimited = false;
 
-          if (edgeError) throw edgeError;
+        creditPayments.forEach((p: any) => {
+          const amt = Number(p.payload?.amount) || 0;
+          const itemsStr = Array.isArray(p.payload?.items) ? p.payload.items.join(' ').toLowerCase() : '';
 
-          const paymentsData = edgeData?.payments || [];
-          const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
-          
-          const creditPayments = paymentsData.filter((p: any) => {
-            const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
-            const amt = Number(p.payload?.amount) || 0;
-            const itemsStr = Array.isArray(p.payload?.items) ? p.payload.items.join(' ').toLowerCase() : '';
-            
-            const isCreditValue = Math.abs(amt - 49.5) < 0.1 || Math.abs(amt - 79.5) < 0.1 || Math.abs(amt - 149) < 0.1;
-            const isCreditItem = itemsStr.includes('recarga') || itemsStr.includes('crédito') || itemsStr.includes('ilimitado');
-            
-            return isSuccess && (isCreditValue || isCreditItem);
-          });
-
-          if (creditPayments.length > 0) {
-            let totalCredits = 0;
-            let isUnlimited = false;
-
-            // Soma os pacotes acumulativamente de forma robusta
-            creditPayments.forEach((p: any) => {
-              const amt = Number(p.payload?.amount) || 0;
-              const itemsStr = Array.isArray(p.payload?.items) ? p.payload.items.join(' ').toLowerCase() : '';
-
-              if (Math.abs(amt - 149) < 0.1 || itemsStr.includes('ilimitado') || itemsStr.includes('dominação')) {
-                isUnlimited = true;
-              } else if (Math.abs(amt - 79.5) < 0.1 || itemsStr.includes('elite') || itemsStr.includes('30')) {
-                totalCredits += 30;
-              } else if (Math.abs(amt - 49.5) < 0.1 || itemsStr.includes('lite') || itemsStr.includes('10')) {
-                totalCredits += 10;
-              } else {
-                totalCredits += 10;
-              }
-            });
-            
-            setCredits(isUnlimited ? 'Ilimitado' : totalCredits.toString());
+          if (Math.abs(amt - 149) < 0.1 || itemsStr.includes('ilimitado') || itemsStr.includes('dominação')) {
+            isUnlimited = true;
+          } else if (Math.abs(amt - 79.5) < 0.1 || itemsStr.includes('elite') || itemsStr.includes('30')) {
+            totalCredits += 30;
+          } else if (Math.abs(amt - 49.5) < 0.1 || itemsStr.includes('lite') || itemsStr.includes('10')) {
+            totalCredits += 10;
           } else {
-            setCredits('0');
+            totalCredits += 10; // Fallback
           }
-        } else {
-          setCredits('0');
-        }
+        });
+        
+        setCredits(isUnlimited ? 'Ilimitado' : totalCredits.toString());
+      } else {
+        setCredits('0');
       }
     } catch (err) {
       console.error("Erro ao carregar créditos:", err);
@@ -93,8 +84,6 @@ const AppHeader: React.FC = () => {
 
   useEffect(() => {
     fetchLeadCredits();
-
-    // Atualiza a cada 5 segundos para refletir injeções manuais sem precisar de refresh
     const interval = setInterval(fetchLeadCredits, 5000);
     return () => clearInterval(interval);
   }, [fetchLeadCredits]);
@@ -131,7 +120,7 @@ const AppHeader: React.FC = () => {
             <span className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest">Créditos</span>
             <Coins className="w-2 sm:w-2.5 h-2 sm:h-2.5 text-yellow-500" />
           </div>
-          <span className={`text-xs sm:text-sm font-black tabular-nums transition-colors duration-500 ${isPaid && credits !== '0' ? 'text-green-400' : 'text-white'}`}>
+          <span className={`text-xs sm:text-sm font-black tabular-nums transition-colors duration-500 ${credits !== '0' ? 'text-green-400' : 'text-white'}`}>
             {credits}
           </span>
         </div>

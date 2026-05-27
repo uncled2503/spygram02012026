@@ -16,23 +16,41 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { leadId, action, amount } = await req.json()
+    const { leadId, action, amount, email } = await req.json()
 
-    if (!leadId || !action) {
-      return new Response(JSON.stringify({ error: 'leadId e action são obrigatórios.' }), {
+    if (!action) {
+      return new Response(JSON.stringify({ error: 'Ação é obrigatória.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    console.log(`[manage-credits] Ação: ${action} para o lead: ${leadId}`);
-
     if (action === 'get') {
-      // Retorna todos os pagamentos vinculados ao lead ignorando RLS
+      let leadIdsToQuery: string[] = [];
+      
+      // Busca todos os leads vinculados a este e-mail para unificar os créditos
+      if (email) {
+        const { data: leads } = await supabase
+          .from('leads')
+          .select('id')
+          .eq('email', email.trim().toLowerCase());
+        leadIdsToQuery = leads?.map(l => l.id) || [];
+      } else if (leadId) {
+        leadIdsToQuery = [leadId];
+      }
+
+      if (leadIdsToQuery.length === 0) {
+        return new Response(JSON.stringify({ payments: [] }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+
+      // Retorna todos os pagamentos vinculados a qualquer um dos leads do usuário
       const { data: payments, error } = await supabase
         .from('payments')
         .select('status, payload')
-        .eq('lead_id', leadId);
+        .in('lead_id', leadIdsToQuery);
 
       if (error) throw error;
 
@@ -42,8 +60,12 @@ serve(async (req) => {
       })
     }
 
+    // Ações de adicionar e remover ainda precisam do leadId específico
+    if (!leadId) {
+      throw new Error('leadId é obrigatório para esta ação.');
+    }
+
     if (action === 'add') {
-      // 1. Adiciona um registro de crédito aprovado
       const { error: insertError } = await supabase
         .from('payments')
         .insert({
@@ -55,7 +77,6 @@ serve(async (req) => {
 
       if (insertError) throw insertError;
 
-      // 2. Garante que o status do lead esteja como 'pagou' para liberar o painel
       const { error: leadError } = await supabase
         .from('leads')
         .update({ status: 'pagou' })
@@ -63,14 +84,12 @@ serve(async (req) => {
 
       if (leadError) throw leadError;
 
-      console.log(`[manage-credits] Créditos de R$ ${amount} adicionados e lead liberado.`);
       return new Response(JSON.stringify({ success: true, message: 'Créditos adicionados com sucesso!' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
 
     } else if (action === 'remove') {
-      // Remove todos os registros de pacotes de crédito do lead
       const { data: payments, error: selectError } = await supabase
         .from('payments')
         .select('id, payload')
@@ -78,7 +97,6 @@ serve(async (req) => {
 
       if (selectError) throw selectError;
 
-      // Filtra e deleta apenas os pagamentos de créditos (49.50, 79.50, 149.00)
       const creditPaymentIds = payments
         ?.filter(p => {
           const payAmt = Number(p.payload?.amount) || 0;
@@ -95,7 +113,6 @@ serve(async (req) => {
         if (deleteError) throw deleteError;
       }
 
-      console.log(`[manage-credits] Todos os créditos foram removidos com sucesso.`);
       return new Response(JSON.stringify({ success: true, message: 'Todos os créditos foram removidos!' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -103,7 +120,7 @@ serve(async (req) => {
     }
 
     throw new Error('Ação inválida.');
-  } catch (error) {
+  } catch (error: any) {
     console.error("[manage-credits] Erro fatal:", error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
