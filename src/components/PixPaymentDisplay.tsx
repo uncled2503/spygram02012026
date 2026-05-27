@@ -113,9 +113,22 @@ const PixPaymentDisplay: React.FC<PixPaymentDisplayProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const qrCodeSrc = paymentCodeBase64?.startsWith('data:') 
-    ? paymentCodeBase64 
-    : `data:image/png;base64,${paymentCodeBase64}`;
+  // SISTEMA INTELIGENTE DE QR CODE: Fallback caso o banco não retorne a imagem
+  const getQrCodeSrc = () => {
+    if (!paymentCodeBase64) {
+      // Gera o QR Code dinamicamente a partir do texto copia e cola
+      return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(paymentCode)}`;
+    }
+    if (paymentCodeBase64.startsWith('http')) {
+      return paymentCodeBase64;
+    }
+    if (paymentCodeBase64.startsWith('data:')) {
+      return paymentCodeBase64;
+    }
+    return `data:image/png;base64,${paymentCodeBase64}`;
+  };
+
+  const qrCodeSrc = getQrCodeSrc();
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -131,7 +144,7 @@ const PixPaymentDisplay: React.FC<PixPaymentDisplayProps> = ({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100 text-gray-800 animate-fade-in">
+    <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100 text-gray-800 animate-fade-in relative z-50">
       <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
         <span className="text-[10px] text-gray-400 font-bold uppercase">Pedido: {transactionId.substring(0, 12).toUpperCase()}</span>
         <div className="flex items-center gap-3">
@@ -166,11 +179,7 @@ const PixPaymentDisplay: React.FC<PixPaymentDisplayProps> = ({
           </div>
 
           <div className="flex flex-col items-center justify-center p-4 border border-gray-100 rounded-xl bg-white shadow-sm min-w-[180px]">
-            {paymentCodeBase64 ? (
-              <img src={qrCodeSrc} alt="QR Code Pix" className="w-40 h-40 object-contain" />
-            ) : (
-              <div className="w-40 h-40 flex items-center justify-center bg-gray-50 text-gray-300 text-[10px] text-center p-4">Carregando...</div>
-            )}
+            <img src={qrCodeSrc} alt="QR Code Pix" className="w-40 h-40 object-contain" />
           </div>
         </div>
 
