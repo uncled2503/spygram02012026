@@ -100,23 +100,31 @@ const CreditsPage: React.FC = () => {
           setIsPaidUser(paid);
 
           if (paid) {
-            const { data: paymentsData } = await supabase
-              .from('payments')
-              .select('status, payload')
-              .eq('lead_id', lead.id);
-
-            const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
-            const hasValidCreditPayment = paymentsData?.some(p => {
-              const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
-              const payAmt = Number(p.payload?.amount) || 0;
-              return isSuccess && (payAmt === 49.50 || payAmt === 79.50 || payAmt === 149.00);
+            // Busca os pagamentos aprovados por meio da Edge Function (bypass de RLS)
+            const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-credits', {
+              body: { leadId: lead.id, action: 'get' }
             });
 
-            setHasCredits(!!hasValidCreditPayment);
+            if (!edgeError && edgeData) {
+              const paymentsData = edgeData.payments || [];
+              const successStatuses = ['paid', 'saquepago', 'approved', 'success', 'pago'];
+              const hasValidCreditPayment = paymentsData.some((p: any) => {
+                const isSuccess = successStatuses.includes(String(p.status).toLowerCase());
+                const payAmt = Number(p.payload?.amount) || 0;
+                return isSuccess && (payAmt === 49.50 || payAmt === 79.50 || payAmt === 149.00);
+              });
+
+              setHasCredits(hasValidCreditPayment);
+            } else {
+              setHasCredits(false);
+            }
+          } else {
+            setHasCredits(false);
           }
         }
       } catch (e) {
         console.error("Erro ao validar créditos:", e);
+        setHasCredits(false);
       }
     };
     checkPayment();
