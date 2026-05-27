@@ -32,11 +32,23 @@ serve(async (req) => {
 
     // 1. Tentar localizar o pagamento pela transaction_id
     if (transactionId) {
+      // Busca o payload existente para preservar os itens inseridos na criação do PIX
+      const { data: existingPayment } = await supabase
+        .from('payments')
+        .select('payload')
+        .eq('transaction_id', String(transactionId))
+        .maybeSingle();
+
+      const mergedPayload = {
+        ...(existingPayment?.payload || {}),
+        ...payload
+      };
+
       const { data: paymentData } = await supabase
         .from('payments')
         .update({ 
           status: payload.status,
-          payload: payload,
+          payload: mergedPayload,
           updated_at: new Date().toISOString()
         })
         .eq('transaction_id', String(transactionId))

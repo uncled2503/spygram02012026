@@ -104,6 +104,14 @@ const CheckoutPage: React.FC = () => {
     const invasionDataRaw = sessionStorage.getItem('invasionData');
     const invasionData = invasionDataRaw ? JSON.parse(invasionDataRaw) : null;
 
+    // Constrói lista exata de itens comprados
+    const purchasedItems = [
+      'Relatório SpyGram 🕵️',
+      ...Object.keys(bumps)
+        .filter(k => bumps[k as keyof typeof bumps])
+        .map(k => bumpDetails[k as keyof typeof bumpDetails].title)
+    ];
+
     // Disparar InitiateCheckout enriquecido com email e whatsapp para excelente taxa de correspondência
     trackFacebookEvent('InitiateCheckout', {
       email: formData.email,
@@ -121,7 +129,8 @@ const CheckoutPage: React.FC = () => {
                 document: formData.documento,
                 phone: formData.whatsapp,
                 amount: total,
-                leadId: currentLeadId
+                leadId: currentLeadId,
+                items: purchasedItems
             },
         });
 

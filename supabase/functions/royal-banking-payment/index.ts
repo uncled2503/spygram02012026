@@ -21,7 +21,7 @@ serve(async (req) => {
       throw new Error('Configuração de token pendente.')
     }
 
-    const { name, email, document, phone, amount, leadId } = await req.json()
+    const { name, email, document, phone, amount, leadId, items } = await req.json()
 
     const cleanDocument = document.replace(/\D/g, '');
     const cleanPhone = phone.replace(/\D/g, '');
@@ -54,14 +54,14 @@ serve(async (req) => {
     const data = await response.json()
 
     if (response.ok && data.idTransaction) {
-      // Registra o mapeamento transação <-> lead com o valor no payload
+      // Registra o mapeamento transação <-> lead com o valor no payload, incluindo os itens comprados
       const { error: pError } = await supabase
         .from('payments')
         .insert({
           transaction_id: String(data.idTransaction),
           lead_id: leadId,
           status: 'pending',
-          payload: { ...data, amount: amount }
+          payload: { ...data, amount: amount, items: items || [] }
         });
       
       if (pError) console.error("[royal-banking-payment] Erro ao salvar payment:", pError.message);
